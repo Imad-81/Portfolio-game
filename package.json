@@ -1,0 +1,12 @@
+{
+    "name": "portfolio-monorepo",
+    "version": "1.0.0",
+    "scripts": {
+        "dev": "concurrently \"bun run --cwd client dev\" \"bun run --cwd server dev\"",
+        "build": "bun run --cwd client build",
+        "start": "concurrently \"bun run --cwd client start\" \"bun run --cwd server start\""
+    },
+    "devDependencies": {
+        "concurrently": "^9.1.2"
+    }
+}
