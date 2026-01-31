@@ -1,120 +1,172 @@
 "use client";
-import React, { useRef } from 'react';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-import Cityscape from '../components/Cityscape';
-import RetroSun from '../components/RetroSun';
-import Mountains from '../components/Mountains';
+import React, { useRef, useState } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import Cityscape from "../components/Cityscape";
+import RetroSun from "../components/RetroSun";
+import Mountains from "../components/Mountains";
+
+/* ===== SPEED TUNING ===== */
+const IDLE_SPEED = 0.15;   // subtle ambient motion
+const DRIVE_SPEED = 1;     // active driving speed
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const roadRef = useRef<HTMLDivElement>(null);
+  const gridTextureRef = useRef<HTMLDivElement>(null);
   const tiltRef = useRef<HTMLDivElement>(null);
 
+  // State for UI text updates only
+  const [isDriving, setIsDriving] = useState(false);
+
+  // Refs for animation logic (avoids re-running effects)
+  const isDrivingRef = useRef(false);
+  const driveTween = useRef<gsap.core.Tween | null>(null);
+
   useGSAP(() => {
-    // Road Animation (Base Speed)
-    // Moves the background/dashed line down to simulate forward movement
-    gsap.to(roadRef.current, {
-      y: 100, // Move down by a segment
-      duration: 1, // Speed
+    /* ===== GRID WORLD LOOP (ALWAYS RUNNING) ===== */
+    driveTween.current = gsap.to(gridTextureRef.current, {
+      y: 60,
+      duration: 1,
       ease: "none",
       repeat: -1,
-      // Reset logic would be needed for seamless loop, relying on CSS dashed-line repeat for now or texture
       modifiers: {
-        y: gsap.utils.unitize(y => parseFloat(y) % 100) // Assuming dashed line repeats every 100px approx
-      }
+        y: gsap.utils.unitize((y) => parseFloat(y) % 60),
+      },
     });
 
-    // Dr. Driving Tilt Logic
+    // Start in idle mode
+    driveTween.current.timeScale(IDLE_SPEED);
+
+    /* ===== SUBTLE CAMERA FLOAT ===== */
+    gsap.to(tiltRef.current, {
+      y: -4,
+      duration: 6,
+      ease: "sine.inOut",
+      yoyo: true,
+      repeat: -1,
+    });
+
+    /* ===== STEERING ===== */
+    const steerX = gsap.quickTo(tiltRef.current, "x", {
+      duration: 0.6,
+      ease: "power2.out",
+    });
+
+    const steerRot = gsap.quickTo(tiltRef.current, "rotationZ", {
+      duration: 0.6,
+      ease: "power2.out",
+    });
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'a' || e.key === 'A') {
-        gsap.to(tiltRef.current, {
-          rotationZ: -5, // Tilt left
-          x: -50, // Move left
-          duration: 0.5,
-          ease: "power2.out"
-        });
-      } else if (e.key === 'd' || e.key === 'D') {
-        gsap.to(tiltRef.current, {
-          rotationZ: 5, // Tilt right
-          x: 50, // Move right
-          duration: 0.5,
-          ease: "power2.out"
-        });
+      // Toggle Driving Mode
+      if (e.key === "w" || e.key === "W") {
+        const nextState = !isDrivingRef.current;
+        isDrivingRef.current = nextState;
+        setIsDriving(nextState); // Update UI state
+
+        // Smoothly speed up or slow down
+        if (driveTween.current) {
+          gsap.to(driveTween.current, {
+            timeScale: nextState ? DRIVE_SPEED : IDLE_SPEED,
+            duration: 0.6,
+            ease: "power2.out",
+          });
+        }
+      }
+
+      if (!isDrivingRef.current) return;
+
+      if (e.key === "a" || e.key === "A") {
+        steerX(-40);
+        steerRot(-3);
+      }
+
+      if (e.key === "d" || e.key === "D") {
+        steerX(40);
+        steerRot(3);
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (['a', 'A', 'd', 'D'].includes(e.key)) {
-        gsap.to(tiltRef.current, {
-          rotationZ: 0,
-          x: 0,
-          duration: 0.5,
-          ease: "power2.out"
-        });
+      if (!isDrivingRef.current) return;
+      if (["a", "A", "d", "D"].includes(e.key)) {
+        steerX(0);
+        steerRot(0);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
-  }, { scope: containerRef });
+  }, { scope: containerRef, dependencies: [] }); // Empty dependency array ensures effect runs only once
 
   return (
-    <section ref={containerRef} className="relative h-screen w-full overflow-hidden flex flex-col items-center justify-center bg-[#120024]">
-      {/* Global CRT Overlay */}
-      <div className="crt-overlay"></div>
+    <section
+      ref={containerRef}
+      className="relative h-screen w-full overflow-hidden bg-[#120024]"
+    >
+      {/* VIGNETTE */}
+      <div className="pointer-events-none absolute inset-0 z-40 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(0,0,0,0.55)_100%)]" />
 
-      <div ref={tiltRef} className="relative w-full h-full flex flex-col items-center justify-center transition-transform will-change-transform z-10">
+      {/* CRT */}
+      <div className="crt-overlay" />
 
-        {/* Horizon Line - Lowered for Bike POV (approx 40%) */}
-        <div className="absolute top-[40%] w-full flex justify-center z-0">
-
-          {/* Mountains - Sits slightly BEHIND fading/masking to look distant */}
-          {/* Scaled down height for "distance" feel and pushed down */}
-          <div className="absolute bottom-0 w-full h-[100px] flex justify-center z-10 pointer-events-none transform translate-y-[260px]">
+      <div
+        ref={tiltRef}
+        className="relative w-full h-full will-change-transform z-10"
+      >
+        {/* ===== HORIZON ===== */}
+        <div className="absolute top-[40%] w-full">
+          <div className="absolute bottom-0 w-full h-[120px] translate-y-[260px] pointer-events-none">
             <Mountains />
           </div>
 
-          {/* Retro Sun - Behind Mountains */}
-          <div className="absolute bottom-0 z-0 transform translate-y-[120px] pointer-events-none">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[120px] pointer-events-none">
             <RetroSun />
           </div>
 
+          <div className="absolute bottom-0 w-full h-28 bg-gradient-to-t from-[#ff4ecd]/20 via-[#ff4ecd]/10 to-transparent blur-xl" />
         </div>
 
-        {/* Cityscape (Palm Trees) */}
+        {/* ===== CITY ===== */}
         <div className="absolute top-[50%] w-full h-full z-20 pointer-events-none">
           <Cityscape side="left" />
           <Cityscape side="right" />
         </div>
 
-        {/* Wireframe Grid Floor - Fixed Visibility */}
-        {/* Using a large plane that starts from the horizon and extends down */}
+        {/* ===== GRID ===== */}
         <div className="absolute top-[40%] w-full h-[60%] overflow-hidden z-10">
-          <div className="absolute w-[200%] h-[200%] -left-[50%] -top-[50%] bg-transparent flex justify-center 
-                              [transform-style:preserve-3d] [transform:perspective(200px)_rotateX(75deg)] origin-center">
-            <div className="w-[400vw] h-[400vw] bg-transparent animate-grid-scroll"
+          <div
+            className="
+              absolute w-[200%] h-[200%] -left-[50%] -top-[50%]
+              [transform-style:preserve-3d]
+              [transform:perspective(240px)_rotateX(75deg)]
+            "
+          >
+            <div
+              ref={gridTextureRef}
+              className="w-[400vw] h-[400vw]"
               style={{
                 backgroundImage: `
-                                linear-gradient(to right, var(--color-grid-pink) 2px, transparent 2px),
-                                linear-gradient(to bottom, var(--color-grid-pink) 2px, transparent 2px)
-                            `,
-                backgroundSize: '60px 60px',
-                maskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)'
+                  linear-gradient(to right, var(--color-grid-pink) 2px, transparent 2px),
+                  linear-gradient(to bottom, var(--color-grid-pink) 2px, transparent 2px)
+                `,
+                backgroundSize: "60px 60px",
+                maskImage:
+                  "linear-gradient(to top, black 0%, black 55%, transparent 100%)",
               }}
-            ></div>
+            />
           </div>
         </div>
       </div>
 
-      {/* Verification Text */}
-      <div className="absolute bottom-10 text-white/50 text-sm z-30">
-        Controls: Press 'A' or 'D' to steer
+      {/* UI */}
+      <div className="absolute bottom-8 w-full text-center text-white/60 text-xs tracking-widest z-50">
+        {isDriving ? "A / D — STEER   ·   W — STOP" : "W — START DRIVING"}
       </div>
     </section>
   );
