@@ -76,7 +76,7 @@ export default function Hero() {
 
           {/* Mountains - Sits slightly BEHIND fading/masking to look distant */}
           {/* Scaled down height for "distance" feel and pushed down */}
-          <div className="absolute bottom-0 w-full h-[100px] flex justify-center z-10 pointer-events-none transform translate-y-[240px]">
+          <div className="absolute bottom-0 w-full h-[100px] flex justify-center z-10 pointer-events-none transform translate-y-[260px]">
             <Mountains />
           </div>
 
