@@ -98,21 +98,40 @@ const Cityscape: React.FC<CityscapeProps> = ({ side }) => {
                     className="absolute origin-bottom opacity-0"
                     style={{
                         height: `${b.height}px`,
-                        width: `${b.width}px`,
-                        backgroundColor: b.color,
-                        boxShadow: `0 0 10px ${b.neonColor}, inset 0 0 20px ${b.neonColor}40`, // Solid neon glow
-                        border: `2px solid ${b.neonColor}`,
-                        top: 0, // Horizon line anchor
+                        width: `${b.height * 0.6}px`, // Tree aspect ratio
+                        top: 0,
+                        zIndex: 20
                     }}
                 >
-                    {b.isBillboard ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/90 m-1 border border-white animate-pulse shadow-[0_0_20px_white]">
-                            <span className="text-lg neon-text font-bold tracking-widest">{b.billboardContent}</span>
-                        </div>
-                    ) : (
-                        // Solid Monolith look - maybe just a vertical line
-                        <div className="w-[2px] h-full bg-white/20 mx-auto blur-[1px]"></div>
-                    )}
+                    {/* Neon Palm Tree SVG */}
+                    <svg viewBox="0 0 100 150" className="w-full h-full drop-shadow-[0_0_5px_#ff0099]">
+                        {/* Trunk */}
+                        <path d="M50,150 Q45,100 50,50"
+                            stroke="#aa00ff" strokeWidth="6" fill="none" strokeLinecap="round"
+                            className="drop-shadow-[0_0_5px_#aa00ff]" />
+
+                        {/* Trunk Segments */}
+                        {Array.from({ length: 6 }).map((_, k) => (
+                            <path key={k} d={`M45,${140 - k * 15} L55,${140 - k * 15}`}
+                                stroke="#000" strokeWidth="2" opacity="0.3" />
+                        ))}
+
+                        {/* Leaves - Palm Crown */}
+                        <g transform="translate(50,50)">
+                            {/* Left Leaves */}
+                            <path d="M0,0 Q-20,-10 -30,10" stroke="#00f2ff" strokeWidth="3" fill="none" />
+                            <path d="M0,0 Q-25,-25 -40,-5" stroke="#00f2ff" strokeWidth="3" fill="none" />
+                            <path d="M0,0 Q-15,-30 -25,-40" stroke="#00f2ff" strokeWidth="3" fill="none" />
+
+                            {/* Right Leaves */}
+                            <path d="M0,0 Q20,-10 30,10" stroke="#00f2ff" strokeWidth="3" fill="none" />
+                            <path d="M0,0 Q25,-25 40,-5" stroke="#00f2ff" strokeWidth="3" fill="none" />
+                            <path d="M0,0 Q15,-30 25,-40" stroke="#00f2ff" strokeWidth="3" fill="none" />
+
+                            {/* Top Leaves */}
+                            <path d="M0,0 Q0,-35 0,-45" stroke="#00f2ff" strokeWidth="3" fill="none" />
+                        </g>
+                    </svg>
                 </div>
             ))}
         </div>

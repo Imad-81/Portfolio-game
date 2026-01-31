@@ -3,6 +3,8 @@ import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import Cityscape from '../components/Cityscape';
+import RetroSun from '../components/RetroSun';
+import Mountains from '../components/Mountains';
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,37 +65,49 @@ export default function Hero() {
   }, { scope: containerRef });
 
   return (
-    <section ref={containerRef} className="relative h-screen w-full overflow-hidden flex flex-col items-center justify-center bg-[#0a0118]">
-      <div ref={tiltRef} className="relative w-full h-full flex flex-col items-center justify-center transition-transform will-change-transform">
-        {/* Horizon Line */}
-        <div className="absolute top-[30%] w-full h-[2px] bg-accent blur-[2px] z-10 shadow-[0_0_20px_var(--color-accent)]"></div>
+    <section ref={containerRef} className="relative h-screen w-full overflow-hidden flex flex-col items-center justify-center bg-[#120024]">
+      {/* Global CRT Overlay */}
+      <div className="crt-overlay"></div>
 
-        <h1 className="absolute top-[10%] z-20 text-6xl font-bold text-accent animate-pulse drop-shadow-[0_0_15px_rgba(188,19,254,0.8)]">
-          CYBER RIDE
-        </h1>
+      <div ref={tiltRef} className="relative w-full h-full flex flex-col items-center justify-center transition-transform will-change-transform z-10">
 
-        {/* Cityscape Backgrounds - Placed behind the road but in the tilt container */}
-        <Cityscape side="left" />
-        <Cityscape side="right" />
+        {/* Horizon Line - Lowered for Bike POV (approx 40%) */}
+        <div className="absolute top-[40%] w-full flex justify-center z-0">
 
-        {/* 3D Road Container - Lowered and tilted more aggressively */}
-        <div className="absolute top-[30%] w-full h-[150vh] flex justify-center [transform-style:preserve-3d] [transform:perspective(500px)_rotateX(80deg)] origin-top z-10">
-          {/* The Road */}
-          <div className="w-[400px] h-full bg-gray-900 relative shadow-[0_0_50px_var(--color-primary)] overflow-hidden border-x-4 border-primary/50">
-            {/* Moving Road Texture */}
-            <div ref={roadRef} className="absolute inset-0 flex justify-center h-[200%] -top-[100%]">
-              {/* Center Line */}
-              <div className="w-6 h-full bg-transparent"
-                style={{
-                  backgroundImage: 'linear-gradient(to bottom, var(--color-accent) 50%, transparent 50%)',
-                  backgroundSize: '100% 200px'
-                }}
-              ></div>
-            </div>
+          {/* Mountains - Sits slightly BEHIND fading/masking to look distant */}
+          {/* Scaled down height for "distance" feel and pushed down */}
+          <div className="absolute bottom-0 w-full h-[100px] flex justify-center z-10 pointer-events-none transform translate-y-[240px]">
+            <Mountains />
+          </div>
 
-            {/* Side Glows */}
-            <div className="absolute left-0 top-0 bottom-0 w-2 bg-primary blur-[2px] shadow-[0_0_20px_var(--color-primary)]"></div>
-            <div className="absolute right-0 top-0 bottom-0 w-2 bg-primary blur-[2px] shadow-[0_0_20px_var(--color-primary)]"></div>
+          {/* Retro Sun - Behind Mountains */}
+          <div className="absolute bottom-0 z-0 transform translate-y-[120px] pointer-events-none">
+            <RetroSun />
+          </div>
+
+        </div>
+
+        {/* Cityscape (Palm Trees) */}
+        <div className="absolute top-[50%] w-full h-full z-20 pointer-events-none">
+          <Cityscape side="left" />
+          <Cityscape side="right" />
+        </div>
+
+        {/* Wireframe Grid Floor - Fixed Visibility */}
+        {/* Using a large plane that starts from the horizon and extends down */}
+        <div className="absolute top-[40%] w-full h-[60%] overflow-hidden z-10">
+          <div className="absolute w-[200%] h-[200%] -left-[50%] -top-[50%] bg-transparent flex justify-center 
+                              [transform-style:preserve-3d] [transform:perspective(200px)_rotateX(75deg)] origin-center">
+            <div className="w-[400vw] h-[400vw] bg-transparent animate-grid-scroll"
+              style={{
+                backgroundImage: `
+                                linear-gradient(to right, var(--color-grid-pink) 2px, transparent 2px),
+                                linear-gradient(to bottom, var(--color-grid-pink) 2px, transparent 2px)
+                            `,
+                backgroundSize: '60px 60px',
+                maskImage: 'linear-gradient(to top, black 0%, black 60%, transparent 100%)'
+              }}
+            ></div>
           </div>
         </div>
       </div>
