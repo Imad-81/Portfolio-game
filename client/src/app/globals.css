@@ -72,3 +72,37 @@ body {
 @utility animate-grid-scroll {
   animation: grid-scroll 0.5s linear infinite;
 }
+
+/* ===== RETRO SUN EFFECTS ===== */
+
+.sun-glow {
+  box-shadow:
+    0 0 60px rgba(255, 183, 3, 0.45),
+    0 0 120px rgba(255, 183, 3, 0.25),
+    0 0 200px rgba(255, 0, 110, 0.65);
+  animation: sun-breathe 6s ease-in-out infinite;
+}
+
+/* Subtle glow breathing */
+@keyframes sun-breathe {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.08);
+  }
+}
+
+/* Slats shimmer (VERY subtle) */
+.sun-slats {
+  animation: sun-scan 240s linear infinite;
+}
+
+@keyframes sun-scan {
+  from {
+    background-position-y: 0%;
+  }
+  to {
+    background-position-y: 100%;
+  }
+}
