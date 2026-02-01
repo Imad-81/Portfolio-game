@@ -165,10 +165,11 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* ===== BIKE (FPP COCKPIT) ===== */}
-        <div className="absolute inset-0 z-30 pointer-events-none">
-          <Bike />
-        </div>
+      </div>
+
+      {/* ===== BIKE (FPP COCKPIT) ===== */}
+      <div className="absolute inset-0 z-30 pointer-events-none">
+        <Bike />
       </div>
 
       {/* UI */}
