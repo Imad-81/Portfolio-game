@@ -6,6 +6,7 @@ import Cityscape from "../components/Cityscape";
 import RetroSun from "../components/RetroSun";
 import Mountains from "../components/Mountains";
 import Bike from "../components/bike/bike";
+import Portal from "../components/Portal";
 
 
 /* ===== SPEED TUNING ===== */
@@ -19,6 +20,7 @@ export default function Hero() {
 
   // State for UI text updates only
   const [isDriving, setIsDriving] = useState(false);
+  const [bikeDistance, setBikeDistance] = useState(0);
 
   // Refs for animation logic (avoids re-running effects)
   const isDrivingRef = useRef(false);
@@ -38,6 +40,18 @@ export default function Hero() {
 
     // Start in idle mode
     driveTween.current.timeScale(IDLE_SPEED);
+
+    /* ===== DISTANCE TRACKING ===== */
+    let animationFrameId: number;
+    const updateDistance = () => {
+      if (isDrivingRef.current) {
+        setBikeDistance((prev) => prev + DRIVE_SPEED);
+      } else {
+        setBikeDistance((prev) => prev + IDLE_SPEED);
+      }
+      animationFrameId = requestAnimationFrame(updateDistance);
+    };
+    animationFrameId = requestAnimationFrame(updateDistance);
 
     /* ===== SUBTLE CAMERA FLOAT ===== */
     gsap.to(tiltRef.current, {
@@ -103,6 +117,7 @@ export default function Hero() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
+      cancelAnimationFrame(animationFrameId);
     };
   }, { scope: containerRef, dependencies: [] }); // Empty dependency array ensures effect runs only once
 
@@ -139,6 +154,36 @@ export default function Hero() {
           <Cityscape side="left" />
           <Cityscape side="right" />
         </div>
+
+        {/* ===== PORTALS ===== */}
+        <Portal
+          label="GITHUB"
+          href="https://github.com/yourusername"
+          side="left"
+          distance={600}
+          currentDistance={bikeDistance}
+        />
+        <Portal
+          label="LINKEDIN"
+          href="https://linkedin.com/in/yourusername"
+          side="right"
+          distance={1200}
+          currentDistance={bikeDistance}
+        />
+        <Portal
+          label="FUN STUFF"
+          href="/fun"
+          side="left"
+          distance={1800}
+          currentDistance={bikeDistance}
+        />
+        <Portal
+          label="PROJECTS"
+          href="/projects"
+          side="right"
+          distance={2400}
+          currentDistance={bikeDistance}
+        />
 
         {/* ===== GRID ===== */}
         <div className="absolute top-[40%] w-full h-[60%] overflow-hidden z-10">
