@@ -5,6 +5,8 @@ import { useGSAP } from "@gsap/react";
 import Cityscape from "../components/Cityscape";
 import RetroSun from "../components/RetroSun";
 import Mountains from "../components/Mountains";
+import Bike from "../components/bike/bike";
+
 
 /* ===== SPEED TUNING ===== */
 const IDLE_SPEED = 0.15;   // subtle ambient motion
@@ -161,6 +163,11 @@ export default function Hero() {
               }}
             />
           </div>
+        </div>
+
+        {/* ===== BIKE (FPP COCKPIT) ===== */}
+        <div className="absolute inset-0 z-30 pointer-events-none">
+          <Bike />
         </div>
       </div>
 
