@@ -53,7 +53,7 @@ export default function Hero() {
     };
     animationFrameId = requestAnimationFrame(updateDistance);
 
-    /* ===== SUBTLE CAMERA FLOAT ===== */
+    /* ===== SUBTLE CAMERA FLOAT  ===== */
     gsap.to(tiltRef.current, {
       y: -4,
       duration: 6,
@@ -155,36 +155,6 @@ export default function Hero() {
           <Cityscape side="right" />
         </div>
 
-        {/* ===== PORTALS ===== */}
-        <Portal
-          label="GITHUB"
-          href="https://github.com/yourusername"
-          side="left"
-          distance={600}
-          currentDistance={bikeDistance}
-        />
-        <Portal
-          label="LINKEDIN"
-          href="https://linkedin.com/in/yourusername"
-          side="right"
-          distance={1200}
-          currentDistance={bikeDistance}
-        />
-        <Portal
-          label="FUN STUFF"
-          href="/fun"
-          side="left"
-          distance={1800}
-          currentDistance={bikeDistance}
-        />
-        <Portal
-          label="PROJECTS"
-          href="/projects"
-          side="right"
-          distance={2400}
-          currentDistance={bikeDistance}
-        />
-
         {/* ===== GRID ===== */}
         <div className="absolute top-[40%] w-full h-[60%] overflow-hidden z-10">
           <div
@@ -209,8 +179,37 @@ export default function Hero() {
             />
           </div>
         </div>
-
       </div>
+
+      {/* ===== PORTALS (GROUNDED - OUTSIDE CAMERA TILT) ===== */}
+      <Portal
+        label="GITHUB"
+        href="https://github.com/yourusername"
+        side="left"
+        distance={600}
+        currentDistance={bikeDistance}
+      />
+      <Portal
+        label="LINKEDIN"
+        href="https://linkedin.com/in/yourusername"
+        side="right"
+        distance={1200}
+        currentDistance={bikeDistance}
+      />
+      <Portal
+        label="FUN STUFF"
+        href="/fun"
+        side="left"
+        distance={1800}
+        currentDistance={bikeDistance}
+      />
+      <Portal
+        label="PROJECTS"
+        href="/projects"
+        side="right"
+        distance={2400}
+        currentDistance={bikeDistance}
+      />
 
       {/* ===== BIKE (FPP COCKPIT) ===== */}
       <div className="absolute inset-0 z-30 pointer-events-none">
@@ -223,4 +222,4 @@ export default function Hero() {
       </div>
     </section>
   );
-}
+}   
