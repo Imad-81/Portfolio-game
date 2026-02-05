@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import Cityscape from "../components/Cityscape";
@@ -13,7 +14,16 @@ import Portal from "../components/Portal";
 const IDLE_SPEED = 0.15;   // subtle ambient motion
 const DRIVE_SPEED = 1;     // active driving speed
 
+// Portal Data Configuration
+const PORTALS = [
+  { label: "GITHUB", href: "https://github.com/yourusername", side: "left", distance: 600 },
+  { label: "LINKEDIN", href: "https://linkedin.com/in/yourusername", side: "right", distance: 1200 },
+  { label: "FUN STUFF", href: "/fun", side: "left", distance: 1800 },
+  { label: "PROJECTS", href: "/projects", side: "right", distance: 2400 },
+] as const;
+
 export default function Hero() {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const gridTextureRef = useRef<HTMLDivElement>(null);
   const tiltRef = useRef<HTMLDivElement>(null);
@@ -25,6 +35,9 @@ export default function Hero() {
   // Refs for animation logic (avoids re-running effects)
   const isDrivingRef = useRef(false);
   const driveTween = useRef<gsap.core.Tween | null>(null);
+
+  // -1 = Left, 0 = Center, 1 = Right
+  const steerState = useRef(0);
 
   useGSAP(() => {
     /* ===== GRID WORLD LOOP (ALWAYS RUNNING) ===== */
@@ -41,17 +54,52 @@ export default function Hero() {
     // Start in idle mode
     driveTween.current.timeScale(IDLE_SPEED);
 
-    /* ===== DISTANCE TRACKING ===== */
+    /* ===== DISTANCE TRACKING & COLLISION ===== */
     let animationFrameId: number;
+    let dist = 0; // Local distance tracker for collision loop to avoid state dependency logic
+
     const updateDistance = () => {
+      const speed = isDrivingRef.current ? DRIVE_SPEED : IDLE_SPEED;
+      dist += speed;
+
+      // Update React state (throttled or every frame is fine for this simple number)
+      setBikeDistance(prev => prev + speed);
+
+      // check collisions
       if (isDrivingRef.current) {
-        setBikeDistance((prev) => prev + DRIVE_SPEED);
-      } else {
-        setBikeDistance((prev) => prev + IDLE_SPEED);
+        PORTALS.forEach(p => {
+          const delta = p.distance - dist; // distance to portal
+
+          // Collision Window: when portal is very close (0 to 50 "meters" away)
+          // refined for "hit" feeling
+          if (delta < 50 && delta > 0) {
+            // Check steering
+            const isSteeringLeft = steerState.current === -1;
+            const isSteeringRight = steerState.current === 1;
+
+            if (p.side === "left" && isSteeringLeft) {
+              triggerPortal(p.href);
+            }
+            if (p.side === "right" && isSteeringRight) {
+              triggerPortal(p.href);
+            }
+          }
+        });
       }
+
       animationFrameId = requestAnimationFrame(updateDistance);
     };
     animationFrameId = requestAnimationFrame(updateDistance);
+
+    const triggerPortal = (href: string) => {
+      // Simple redirect logic
+      // Could add a "zoom" effect here later
+      if (href.startsWith("http")) {
+        window.location.href = href;
+      } else {
+        router.push(href);
+      }
+    };
 
     /* ===== SUBTLE CAMERA FLOAT  ===== */
     gsap.to(tiltRef.current, {
@@ -93,11 +141,13 @@ export default function Hero() {
       if (!isDrivingRef.current) return;
 
       if (e.key === "a" || e.key === "A") {
+        steerState.current = -1;
         steerX(-40);
         steerRot(-3);
       }
 
       if (e.key === "d" || e.key === "D") {
+        steerState.current = 1;
         steerX(40);
         steerRot(3);
       }
@@ -106,6 +156,7 @@ export default function Hero() {
     const handleKeyUp = (e: KeyboardEvent) => {
       if (!isDrivingRef.current) return;
       if (["a", "A", "d", "D"].includes(e.key)) {
+        steerState.current = 0;
         steerX(0);
         steerRot(0);
       }
@@ -177,39 +228,22 @@ export default function Hero() {
                   "linear-gradient(to top, black 0%, black 55%, transparent 100%)",
               }}
             />
+
+            {/* PORTALS (INSIDE GRID CONTAINER) */}
+            {PORTALS.map((p, i) => (
+              <Portal
+                key={i}
+                label={p.label}
+                href={p.href}
+                side={p.side as "left" | "right"}
+                distance={p.distance}
+                currentDistance={bikeDistance}
+              />
+            ))}
+
           </div>
         </div>
       </div>
-
-      {/* ===== PORTALS (GROUNDED - OUTSIDE CAMERA TILT) ===== */}
-      <Portal
-        label="GITHUB"
-        href="https://github.com/yourusername"
-        side="left"
-        distance={600}
-        currentDistance={bikeDistance}
-      />
-      <Portal
-        label="LINKEDIN"
-        href="https://linkedin.com/in/yourusername"
-        side="right"
-        distance={1200}
-        currentDistance={bikeDistance}
-      />
-      <Portal
-        label="FUN STUFF"
-        href="/fun"
-        side="left"
-        distance={1800}
-        currentDistance={bikeDistance}
-      />
-      <Portal
-        label="PROJECTS"
-        href="/projects"
-        side="right"
-        distance={2400}
-        currentDistance={bikeDistance}
-      />
 
       {/* ===== BIKE (FPP COCKPIT) ===== */}
       <div className="absolute inset-0 z-30 pointer-events-none">
