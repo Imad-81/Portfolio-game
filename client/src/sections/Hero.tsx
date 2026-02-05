@@ -19,8 +19,8 @@ const MAX_LATERAL = 900;   // Road width limit
 // Portal X-Coordinates (Matches Portal.tsx offsets)
 // Left: -250, Right: 250
 const PORTALS = [
-  { label: "GITHUB", href: "https://github.com/yourusername", side: "left", distance: 600, x: -250 },
-  { label: "LINKEDIN", href: "https://linkedin.com/in/yourusername", side: "right", distance: 1200, x: 250 },
+  { label: "GITHUB", href: "https://github.com/Imad-81", side: "left", distance: 600, x: -250 },
+  { label: "LINKEDIN", href: "https://www.linkedin.com/in/shaik-imaduddin-a79887390/", side: "right", distance: 1200, x: 250 },
   { label: "FUN STUFF", href: "/fun", side: "left", distance: 1800, x: -250 },
   { label: "PROJECTS", href: "/projects", side: "right", distance: 2400, x: 250 },
 ] as const;
