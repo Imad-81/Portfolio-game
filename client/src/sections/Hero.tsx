@@ -13,19 +13,28 @@ import Portal from "../components/Portal";
 /* ===== SPEED TUNING ===== */
 const IDLE_SPEED = 0.15;   // subtle ambient motion
 const DRIVE_SPEED = 1;     // active driving speed
+const STEER_SPEED = 8;     // lateral speed (pixels per frame)
+const MAX_LATERAL = 900;   // Road width limit
 
-// Portal Data Configuration
+// Portal X-Coordinates (Matches Portal.tsx offsets)
+// Left: -250, Right: 250
 const PORTALS = [
-  { label: "GITHUB", href: "https://github.com/yourusername", side: "left", distance: 600 },
-  { label: "LINKEDIN", href: "https://linkedin.com/in/yourusername", side: "right", distance: 1200 },
-  { label: "FUN STUFF", href: "/fun", side: "left", distance: 1800 },
-  { label: "PROJECTS", href: "/projects", side: "right", distance: 2400 },
+  { label: "GITHUB", href: "https://github.com/yourusername", side: "left", distance: 600, x: -250 },
+  { label: "LINKEDIN", href: "https://linkedin.com/in/yourusername", side: "right", distance: 1200, x: 250 },
+  { label: "FUN STUFF", href: "/fun", side: "left", distance: 1800, x: -250 },
+  { label: "PROJECTS", href: "/projects", side: "right", distance: 2400, x: 250 },
 ] as const;
 
 export default function Hero() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Element Refs for Parallax
   const gridTextureRef = useRef<HTMLDivElement>(null);
+  const gridTransformRef = useRef<HTMLDivElement>(null); // The parent 3D container
+  const cityRef = useRef<HTMLDivElement>(null);
+  const mountRef = useRef<HTMLDivElement>(null);
+
   const tiltRef = useRef<HTMLDivElement>(null);
 
   // State for UI text updates only
@@ -38,6 +47,9 @@ export default function Hero() {
 
   // -1 = Left, 0 = Center, 1 = Right
   const steerState = useRef(0);
+
+  // Lateral Position
+  const bikeX = useRef(0);
 
   useGSAP(() => {
     /* ===== GRID WORLD LOOP (ALWAYS RUNNING) ===== */
@@ -56,40 +68,67 @@ export default function Hero() {
 
     /* ===== DISTANCE TRACKING & COLLISION ===== */
     let animationFrameId: number;
-    let dist = 0; // Local distance tracker for collision loop to avoid state dependency logic
+    let dist = 0; // Local distance tracker for collision loop
 
-    const updateDistance = () => {
+    const updatePhysics = () => {
+      // 1. Forward Speed
       const speed = isDrivingRef.current ? DRIVE_SPEED : IDLE_SPEED;
       dist += speed;
-
-      // Update React state (throttled or every frame is fine for this simple number)
       setBikeDistance(prev => prev + speed);
 
-      // check collisions
+      // 2. Lateral Steering (Only when driving)
+      if (isDrivingRef.current && steerState.current !== 0) {
+        bikeX.current += steerState.current * STEER_SPEED;
+
+        // Clamp to road logic
+        bikeX.current = Math.max(-MAX_LATERAL, Math.min(MAX_LATERAL, bikeX.current));
+      } else if (!isDrivingRef.current) {
+        // Auto-center when stopped (optional, maybe nice for idle)
+        bikeX.current += (0 - bikeX.current) * 0.05;
+      }
+
+      // 3. Apply Parallax Transforms (Simulate Camera Moving)
+      // Moving RIGHT (bikeX positive) means world moves LEFT (translateX negative)
+
+      // Grid & Portals: 1:1 movement
+      if (gridTransformRef.current) {
+        gsap.set(gridTransformRef.current, {
+          x: -bikeX.current
+        });
+      }
+
+      // City: 50% parallax
+      if (cityRef.current) {
+        gsap.set(cityRef.current, {
+          x: -bikeX.current * 0.5
+        });
+      }
+
+      // Mountains: 10% parallax
+      if (mountRef.current) {
+        gsap.set(mountRef.current, {
+          x: -bikeX.current * 0.1
+        });
+      }
+
+      // 4. Collision Logic
       if (isDrivingRef.current) {
         PORTALS.forEach(p => {
-          const delta = p.distance - dist; // distance to portal
+          const deltaZ = p.distance - dist; // distance to portal (Z-axis relative)
+          const deltaX = Math.abs(p.x - bikeX.current); // lateral offset
 
-          // Collision Window: when portal is very close (0 to 50 "meters" away)
-          // refined for "hit" feeling
-          if (delta < 50 && delta > 0) {
-            // Check steering
-            const isSteeringLeft = steerState.current === -1;
-            const isSteeringRight = steerState.current === 1;
-
-            if (p.side === "left" && isSteeringLeft) {
-              triggerPortal(p.href);
-            }
-            if (p.side === "right" && isSteeringRight) {
-              triggerPortal(p.href);
-            }
+          // Collision Window:
+          // Z: 0 to 50 meters in front
+          // X: overlapping within ~80px (portal is roughly 150px wide)
+          if (deltaZ < 50 && deltaZ > 0 && deltaX < 80) {
+            triggerPortal(p.href);
           }
         });
       }
 
-      animationFrameId = requestAnimationFrame(updateDistance);
+      animationFrameId = requestAnimationFrame(updatePhysics);
     };
-    animationFrameId = requestAnimationFrame(updateDistance);
+    animationFrameId = requestAnimationFrame(updatePhysics);
 
     const triggerPortal = (href: string) => {
       // Simple redirect logic
@@ -101,7 +140,7 @@ export default function Hero() {
       }
     };
 
-    /* ===== SUBTLE CAMERA FLOAT  ===== */
+    /* ===== SUBTLE CAMERA FLOAT (VERTICAL ONLY) ===== */
     gsap.to(tiltRef.current, {
       y: -4,
       duration: 6,
@@ -110,16 +149,16 @@ export default function Hero() {
       repeat: -1,
     });
 
-    /* ===== STEERING ===== */
-    const steerX = gsap.quickTo(tiltRef.current, "x", {
-      duration: 0.6,
+    /* ===== STEERING TILT ANIMATION ===== */
+    const steerRot = gsap.quickTo(tiltRef.current, "rotationZ", {
+      duration: 0.4,
       ease: "power2.out",
     });
 
-    const steerRot = gsap.quickTo(tiltRef.current, "rotationZ", {
-      duration: 0.6,
-      ease: "power2.out",
-    });
+    // Bike lean effect relies on steering direction
+    const updateTilt = () => {
+      steerRot(steerState.current * 3); // 3 degrees lean
+    };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Toggle Driving Mode
@@ -142,23 +181,23 @@ export default function Hero() {
 
       if (e.key === "a" || e.key === "A") {
         steerState.current = -1;
-        steerX(-40);
-        steerRot(-3);
+        updateTilt();
       }
 
       if (e.key === "d" || e.key === "D") {
         steerState.current = 1;
-        steerX(40);
-        steerRot(3);
+        updateTilt();
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (!isDrivingRef.current) return;
-      if (["a", "A", "d", "D"].includes(e.key)) {
+      if (["a", "A"].includes(e.key) && steerState.current === -1) {
         steerState.current = 0;
-        steerX(0);
-        steerRot(0);
+        updateTilt();
+      }
+      if (["d", "D"].includes(e.key) && steerState.current === 1) {
+        steerState.current = 0;
+        updateTilt();
       }
     };
 
@@ -189,7 +228,10 @@ export default function Hero() {
       >
         {/* ===== HORIZON ===== */}
         <div className="absolute top-[40%] w-full">
-          <div className="absolute bottom-0 w-full h-[120px] translate-y-[260px] pointer-events-none">
+          <div
+            ref={mountRef}
+            className="absolute bottom-0 w-full h-[120px] translate-y-[260px] pointer-events-none"
+          >
             <Mountains />
           </div>
 
@@ -201,7 +243,10 @@ export default function Hero() {
         </div>
 
         {/* ===== CITY ===== */}
-        <div className="absolute top-[50%] w-full h-full z-20 pointer-events-none">
+        <div
+          ref={cityRef}
+          className="absolute top-[50%] w-full h-full z-20 pointer-events-none"
+        >
           <Cityscape side="left" />
           <Cityscape side="right" />
         </div>
@@ -215,31 +260,38 @@ export default function Hero() {
               [transform:perspective(240px)_rotateX(75deg)]
             "
           >
-            <div
-              ref={gridTextureRef}
-              className="w-[400vw] h-[400vw]"
-              style={{
-                backgroundImage: `
-                  linear-gradient(to right, var(--color-grid-pink) 2px, transparent 2px),
-                  linear-gradient(to bottom, var(--color-grid-pink) 2px, transparent 2px)
-                `,
-                backgroundSize: "60px 60px",
-                maskImage:
-                  "linear-gradient(to top, black 0%, black 55%, transparent 100%)",
-              }}
-            />
-
-            {/* PORTALS (INSIDE GRID CONTAINER) */}
-            {PORTALS.map((p, i) => (
-              <Portal
-                key={i}
-                label={p.label}
-                href={p.href}
-                side={p.side as "left" | "right"}
-                distance={p.distance}
-                currentDistance={bikeDistance}
+            {/* 
+                Wrapper for internal X-translation (Lateral movement).
+                The outer div holds the perspective and rotation.
+                This inner div slides left/right.
+             */}
+            <div ref={gridTransformRef} className="w-full h-full [transform-style:preserve-3d] will-change-transform">
+              <div
+                ref={gridTextureRef}
+                className="w-[400vw] h-[400vw]"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(to right, var(--color-grid-pink) 2px, transparent 2px),
+                    linear-gradient(to bottom, var(--color-grid-pink) 2px, transparent 2px)
+                    `,
+                  backgroundSize: "60px 60px",
+                  maskImage:
+                    "linear-gradient(to top, black 0%, black 55%, transparent 100%)",
+                }}
               />
-            ))}
+
+              {/* PORTALS (INSIDE GRID CONTAINER) */}
+              {PORTALS.map((p, i) => (
+                <Portal
+                  key={i}
+                  label={p.label}
+                  href={p.href}
+                  side={p.side as "left" | "right"}
+                  distance={p.distance}
+                  currentDistance={bikeDistance}
+                />
+              ))}
+            </div>
 
           </div>
         </div>
