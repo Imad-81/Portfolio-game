@@ -8,12 +8,15 @@ import RetroSun from "../components/RetroSun";
 import Mountains from "../components/Mountains";
 import Bike from "../components/bike/bike";
 import Portal from "../components/Portal";
+import SpeedLines from "../components/SpeedLines";
+
+const ENABLE_SPEED_LINES = false;
 
 
 /* ===== SPEED TUNING ===== */
 const IDLE_SPEED = 0.15;   // subtle ambient motion
-const DRIVE_SPEED = 1;     // active driving speed
-const STEER_SPEED = 8;     // lateral speed (pixels per frame)
+const DRIVE_SPEED = 4;     // active driving speed
+const STEER_SPEED = 3;     // lateral speed (pixels per frame)
 const MAX_LATERAL = 900;   // Road width limit
 
 // Portal X-Coordinates (Matches Portal.tsx offsets)
@@ -36,6 +39,9 @@ export default function Hero() {
   const mountRef = useRef<HTMLDivElement>(null);
 
   const tiltRef = useRef<HTMLDivElement>(null);
+
+  // FX Refs
+  const rumbleRef = useRef<HTMLDivElement>(null); // Separate shake container
 
   // State for UI text updates only
   const [isDriving, setIsDriving] = useState(false);
@@ -66,7 +72,7 @@ export default function Hero() {
     // Start in idle mode
     driveTween.current.timeScale(IDLE_SPEED);
 
-    /* ===== DISTANCE TRACKING & COLLISION ===== */
+    /* ===== DISTANCE TRACKING & COLLISION & RUMBLE ===== */
     let animationFrameId: number;
     let dist = 0; // Local distance tracker for collision loop
 
@@ -111,7 +117,19 @@ export default function Hero() {
         });
       }
 
-      // 4. Collision Logic
+      // 4. Camera Rumble (High Frequency Shake)
+      if (rumbleRef.current) {
+        if (isDrivingRef.current) {
+          gsap.set(rumbleRef.current, {
+            x: (Math.random() - 0.5) * 2, // +/- 1.5px
+            y: (Math.random() - 0.5) * 2
+          });
+        } else {
+          gsap.set(rumbleRef.current, { x: 0, y: 0 });
+        }
+      }
+
+      // 5. Collision Logic
       if (isDrivingRef.current) {
         PORTALS.forEach(p => {
           const deltaZ = p.distance - dist; // distance to portal (Z-axis relative)
@@ -160,12 +178,28 @@ export default function Hero() {
       steerRot(steerState.current * 3); // 3 degrees lean
     };
 
+    // FOV Surge (Scale Effect)
+    const surge = (active: boolean) => {
+      gsap.to(containerRef.current, {
+        scale: active ? 1.02 : 1, // Slight punch in or out
+        duration: 0.8,
+        ease: "power2.out"
+      });
+
+      gsap.to(tiltRef.current, {
+        z: active ? -50 : 0, // Pull camera back slightly
+        duration: 1,
+        ease: "power2.inOut"
+      });
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       // Toggle Driving Mode
       if (e.key === "w" || e.key === "W") {
         const nextState = !isDrivingRef.current;
         isDrivingRef.current = nextState;
         setIsDriving(nextState); // Update UI state
+        surge(nextState);
 
         // Smoothly speed up or slow down
         if (driveTween.current) {
@@ -222,82 +256,92 @@ export default function Hero() {
       {/* CRT */}
       <div className="crt-overlay" />
 
-      <div
-        ref={tiltRef}
-        className="relative w-full h-full will-change-transform z-10"
-      >
-        {/* ===== HORIZON ===== */}
-        <div className="absolute top-[40%] w-full">
-          <div
-            ref={mountRef}
-            className="absolute bottom-0 w-full h-[120px] translate-y-[260px] pointer-events-none"
-          >
-            <Mountains />
-          </div>
+      {/* SPEED LINES */}
+      {ENABLE_SPEED_LINES && <SpeedLines isActive={isDriving} />}
 
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[120px] pointer-events-none">
-            <RetroSun />
-          </div>
-
-          <div className="absolute bottom-0 w-full h-28 bg-gradient-to-t from-[#ff4ecd]/20 via-[#ff4ecd]/10 to-transparent blur-xl" />
-        </div>
-
-        {/* ===== CITY ===== */}
+      <div ref={rumbleRef} className="relative w-full h-full will-change-transform">
         <div
-          ref={cityRef}
-          className="absolute top-[50%] w-full h-full z-20 pointer-events-none"
+          ref={tiltRef}
+          className="relative w-full h-full will-change-transform z-10 [transform-style:preserve-3d]"
         >
-          <Cityscape side="left" />
-          <Cityscape side="right" />
-        </div>
-
-        {/* ===== GRID ===== */}
-        <div className="absolute top-[40%] w-full h-[60%] overflow-hidden z-10">
-          <div
-            className="
-              absolute w-[200%] h-[200%] -left-[50%] -top-[50%]
-              [transform-style:preserve-3d]
-              [transform:perspective(240px)_rotateX(75deg)]
-            "
-          >
-            {/* 
-                Wrapper for internal X-translation (Lateral movement).
-                The outer div holds the perspective and rotation.
-                This inner div slides left/right.
-             */}
-            <div ref={gridTransformRef} className="w-full h-full [transform-style:preserve-3d] will-change-transform">
-              <div
-                ref={gridTextureRef}
-                className="w-[400vw] h-[400vw]"
-                style={{
-                  backgroundImage: `
-                    linear-gradient(to right, var(--color-grid-pink) 2px, transparent 2px),
-                    linear-gradient(to bottom, var(--color-grid-pink) 2px, transparent 2px)
-                    `,
-                  backgroundSize: "60px 60px",
-                  maskImage:
-                    "linear-gradient(to top, black 0%, black 55%, transparent 100%)",
-                }}
-              />
-
-              {/* PORTALS (INSIDE GRID CONTAINER) */}
-              {PORTALS.map((p, i) => (
-                <Portal
-                  key={i}
-                  label={p.label}
-                  href={p.href}
-                  side={p.side as "left" | "right"}
-                  distance={p.distance}
-                  currentDistance={bikeDistance}
-                />
-              ))}
+          {/* ===== HORIZON ===== */}
+          <div className="absolute top-[40%] w-full">
+            <div
+              ref={mountRef}
+              className="absolute bottom-0 w-full h-[120px] translate-y-[260px] pointer-events-none"
+            >
+              <Mountains />
             </div>
 
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[120px] pointer-events-none">
+              <RetroSun />
+            </div>
+
+            <div className="absolute bottom-0 w-full h-28 bg-gradient-to-t from-[#ff4ecd]/20 via-[#ff4ecd]/10 to-transparent blur-xl" />
+          </div>
+
+          {/* ===== CITY ===== */}
+          <div
+            ref={cityRef}
+            className="absolute top-[50%] w-full h-full z-20 pointer-events-none"
+          >
+            <Cityscape side="left" />
+            <Cityscape side="right" />
+          </div>
+
+          {/* ===== GRID ===== */}
+          <div className="absolute top-[40%] w-full h-[60%] overflow-hidden z-10">
+            <div
+              className="
+                absolute w-[200%] h-[200%] -left-[50%] -top-[50%]
+                [transform-style:preserve-3d]
+                [transform:perspective(240px)_rotateX(75deg)]
+                "
+            >
+              {/* 
+                    Wrapper for internal X-translation (Lateral movement).
+                    The outer div holds the perspective and rotation.
+                    This inner div slides left/right.
+                */}
+              <div ref={gridTransformRef} className="w-full h-full [transform-style:preserve-3d] will-change-transform">
+                <div
+                  ref={gridTextureRef}
+                  className="w-[400vw] h-[400vw]"
+                  style={{
+                    backgroundImage: `
+                        linear-gradient(to right, var(--color-grid-pink) 2px, transparent 2px),
+                        linear-gradient(to bottom, var(--color-grid-pink) 2px, transparent 2px)
+                        `,
+                    backgroundSize: "60px 60px",
+                    maskImage:
+                      "linear-gradient(to top, black 0%, black 55%, transparent 100%)",
+                  }}
+                />
+
+                {/* PORTALS (INSIDE GRID CONTAINER) */}
+                {PORTALS.map((p, i) => (
+                  <Portal
+                    key={i}
+                    label={p.label}
+                    href={p.href}
+                    side={p.side as "left" | "right"}
+                    distance={p.distance}
+                    currentDistance={bikeDistance}
+                  />
+                ))}
+              </div>
+
+            </div>
           </div>
         </div>
       </div>
 
       {/* ===== BIKE (FPP COCKPIT) ===== */}
+      {/* Note: Bike is OUTSIDE the camera tumble to act as the "viewport frame" 
+          or shake strictly with vibration? 
+          Let's put it on top of the rumbleRef but not the tiltRef.
+          Actually, let's keep it clean on top.
+      */}
       <div className="absolute inset-0 z-30 pointer-events-none">
         <Bike />
       </div>
