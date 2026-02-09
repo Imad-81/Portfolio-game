@@ -393,173 +393,55 @@ body {
 }
 
 /* =========================================
-   CYBER AESTHETICS & GLITCH FX
+   MINIMALIST GLASS AESTHETICS
    ========================================= */
 
-/* Glitch Animation Keyframes */
-@keyframes glitch-anim-1 {
-  0% {
-    clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%);
-    transform: translate(0);
-  }
-
-  20% {
-    clip-path: polygon(0 15%, 100% 15%, 100% 15%, 0 15%);
-    transform: translate(-2px, 2px);
-  }
-
-  40% {
-    clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%);
-    transform: translate(2px, -2px);
-  }
-
-  60% {
-    clip-path: polygon(0 1%, 100% 1%, 100% 2%, 0 2%);
-    transform: translate(-2px, 2px);
-  }
-
-  80% {
-    clip-path: polygon(0 33%, 100% 33%, 100% 50%, 0 50%);
-    transform: translate(0);
-  }
-
-  100% {
-    clip-path: polygon(0 90%, 100% 90%, 100% 100%, 0 100%);
-    transform: translate(2px, -2px);
-  }
+@utility glass-panel {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
 }
 
-@keyframes glitch-anim-2 {
-  0% {
-    clip-path: polygon(0 20%, 100% 20%, 100% 50%, 0 50%);
-    transform: translate(0);
-  }
-
-  20% {
-    clip-path: polygon(0 0%, 100% 0%, 100% 5%, 0 5%);
-    transform: translate(2px, -2px);
-  }
-
-  40% {
-    clip-path: polygon(0 50%, 100% 50%, 100% 80%, 0 80%);
-    transform: translate(-2px, 2px);
-  }
-
-  60% {
-    clip-path: polygon(0 10%, 100% 10%, 100% 40%, 0 40%);
-    transform: translate(2px, -2px);
-  }
-
-  80% {
-    clip-path: polygon(0 30%, 100% 30%, 100% 60%, 0 60%);
-    transform: translate(-2px, 2px);
-  }
-
-  100% {
-    clip-path: polygon(0 0%, 100% 0%, 100% 2%, 0 2%);
-    transform: translate(0);
-  }
+@utility glow-text-subtle {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.1), 0 0 20px rgba(188, 19, 254, 0.1);
 }
 
-@utility glitch-text {
-  position: relative;
-}
-
-@utility glitch-text::before,
-@utility glitch-text::after {
-  content: attr(data-text);
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-@utility glitch-text::before {
-  left: 2px;
-  text-shadow: -1px 0 #ff00c1;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-  animation: glitch-anim-1 3s infinite linear alternate-reverse;
-}
-
-@utility glitch-text::after {
-  left: -2px;
-  text-shadow: -1px 0 #00fff9;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-  animation: glitch-anim-2 2s infinite linear alternate-reverse;
-}
-
-/* Static Noise Background */
-@utility bg-noise {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
-  pointer-events: none;
-}
-
-/* Scanline Overlay (distinct from CRT) */
-@utility scanlines {
-  background: linear-gradient(to bottom,
-      rgba(255, 255, 255, 0),
-      rgba(255, 255, 255, 0) 50%,
-      rgba(0, 0, 0, 0.1) 50%,
-      rgba(0, 0, 0, 0.1));
-  background-size: 100% 4px;
-}
-
-/* Terminal Cursor Blink */
-@keyframes terminal-blink {
+@keyframes pulse-soft {
 
   0%,
   100% {
     opacity: 1;
+    transform: scale(1);
   }
 
   50% {
-    opacity: 0;
+    opacity: 0.8;
+    transform: scale(0.98);
   }
 }
 
-@utility animate-cursor-blink {
-  animation: terminal-blink 1s step-end infinite;
+@utility animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
 }
 
-/* HUD Borders */
-@utility hud-corner-tl {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2rem;
-  height: 2rem;
-  border-top: 2px solid var(--color-accent);
-  border-left: 2px solid var(--color-accent);
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
-@utility hud-corner-tr {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 2rem;
-  height: 2rem;
-  border-top: 2px solid var(--color-accent);
-  border-right: 2px solid var(--color-accent);
+@utility animate-float {
+  animation: float 6s ease-in-out infinite;
 }
 
-@utility hud-corner-bl {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 2rem;
-  height: 2rem;
-  border-bottom: 2px solid var(--color-accent);
-  border-left: 2px solid var(--color-accent);
-}
-
-@utility hud-corner-br {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 2rem;
-  height: 2rem;
-  border-bottom: 2px solid var(--color-accent);
-  border-right: 2px solid var(--color-accent);
+@utility border-glow {
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.01);
 }

@@ -311,64 +311,59 @@ export default function Hero() {
       <div className="pointer-events-none absolute inset-0 z-40 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(0,0,0,0.55)_100%)]" />
 
       {/* CRT */}
-      <div className="crt-overlay" />
+      {/* <div className="crt-overlay" /> */}
 
       {/* SPEED LINES */}
       {ENABLE_SPEED_LINES && <SpeedLines isActive={isDriving} />}
 
       {/* OVERLAY - INTRO / PAUSE */}
       {!isGameActive && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md bg-noise scanlines">
-          {/* Main Terminal Box */}
-          <div className="relative p-12 md:p-20 border border-white/10 bg-black/80 shadow-[0_0_100px_rgba(188,19,254,0.15)] max-w-4xl w-full mx-4 overflow-hidden">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
+          {/* Main Glass Panel */}
+          <div className="glass-panel p-8 md:p-12 rounded-3xl max-w-2xl w-full mx-4 flex flex-col items-center text-center animate-float animate-fade-in-up">
 
-            {/* HUD Corners */}
-            <div className="hud-corner-tl" />
-            <div className="hud-corner-tr" />
-            <div className="hud-corner-bl" />
-            <div className="hud-corner-br" />
+            {/* Top Calm Label */}
+            <h2 className="text-white/60 text-[10px] md:text-xs font-medium tracking-[0.3em] uppercase mb-8">
+              {!hasStarted ? "INTERACTIVE PORTFOLIO" : "SYSTEM PAUSED"}
+            </h2>
 
-            {/* Content */}
-            <div className="relative z-10 text-center space-y-8">
+            {/* Primary Headline */}
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white mb-12 glow-text-subtle">
+              {!hasStarted ? "PLAY THE EXPERIENCE" : "GAME PAUSED"}
+            </h1>
 
-              {/* Header Group */}
-              <div className="space-y-2">
-                <h1
-                  className="text-6xl md:text-9xl font-black tracking-tighter text-white glitch-text filter drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]"
-                  data-text={!hasStarted ? "SYSTEM ONLINE" : "SYSTEM PAUSED"}
-                >
-                  {!hasStarted ? "SYSTEM ONLINE" : "SYSTEM PAUSED"}
-                </h1>
-
-                <div className="flex items-center justify-center gap-4 text-[#00f5ff] font-mono tracking-[0.2em] text-xs md:text-sm opacity-80">
-                  <span>::</span>
-                  <span>{!hasStarted ? "INITIALIZING INTERFACE" : "AWAITING INPUT"}</span>
-                  <span>::</span>
-                </div>
+            {/* Choice A: Play (Primary) */}
+            <div
+              className="group cursor-pointer mb-8 animate-pulse-soft"
+              onClick={() => {
+                const event = new KeyboardEvent('keydown', { key: 'Enter' });
+                window.dispatchEvent(event);
+              }}
+            >
+              <div className="text-white text-lg md:text-xl font-medium tracking-[0.15em] border-b border-white/80 pb-1 mb-2 group-hover:text-[#bc13fe] group-hover:border-[#bc13fe] transition-colors">
+                [ PRESS ENTER ]
               </div>
-
-              {/* Decorative Divider */}
-              <div className="w-full h-px bg-gradient-to-r from-transparent via-[#bc13fe] to-transparent opacity-50" />
-
-              {/* Action Group */}
-              <div className="space-y-4 pt-4">
-                <div className="font-mono text-lg md:text-2xl text-white tracking-widest">
-                  <span className="text-[#bc13fe] animate-pulse mr-2">➜</span>
-                  <span className="animate-cursor-blink border-b-2 border-[#bc13fe] pb-1">
-                    {!hasStarted ? "PRESS [ENTER] TO START" : "PRESS [ENTER] TO RESUME"}
-                  </span>
-                </div>
-
-                <p className="text-white/40 font-mono text-[10px] md:text-xs uppercase tracking-widest">
-                  {!hasStarted ? "// SCROLL TO EXPLORE ARCHIVES //" : "// SCROLL DOWN FOR DATABASE ACCESS //"}
-                </p>
-              </div>
-
+              <p className="text-white/40 text-xs md:text-sm font-light tracking-wide">
+                {!hasStarted ? "Drive through the portfolio" : "To resume driving"}
+              </p>
             </div>
 
-            {/* Background Decoration in Box */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00f5ff] to-transparent opacity-50" />
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00f5ff] to-transparent opacity-50" />
+            {/* Choice B: Scroll (Secondary) */}
+            <div className="text-white/30 text-xs md:text-sm font-light tracking-[0.1em] mb-12 flex flex-col items-center gap-2">
+              <span>{!hasStarted ? "Scroll for the classic view" : "Scroll to explore details"}</span>
+              <span className="animate-float opacity-50" style={{ animationDuration: '3s' }}>↓</span>
+            </div>
+
+            {/* Footer Personal Branding */}
+            <div className="mt-auto pt-8 border-t border-white/5 w-full">
+              <h3 className="text-white/70 text-sm font-medium tracking-widest uppercase">
+                IMADUDDIN
+              </h3>
+              <p className="text-white/30 text-[10px] tracking-[0.2em] uppercase mt-1">
+                Creative Developer & UI Engineer
+              </p>
+            </div>
+
           </div>
         </div>
       )}
@@ -495,4 +490,3 @@ export default function Hero() {
     </section>
   );
 }
-
