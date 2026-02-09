@@ -8,6 +8,7 @@ interface PortalProps {
   side: "left" | "right";
   distance: number;
   currentDistance: number;
+  offset?: number;
 }
 
 const Portal: React.FC<PortalProps> = ({
@@ -16,6 +17,7 @@ const Portal: React.FC<PortalProps> = ({
   side,
   distance,
   currentDistance,
+  offset,
 }) => {
   // Relative distance (meters/pixels) from the camera
   // If moving forward increases currentDistance, then:
@@ -29,9 +31,8 @@ const Portal: React.FC<PortalProps> = ({
   if (relativePos > 6000) return null;
 
   // Side offset from center (0)
-  // Grid lines are ~60px apart.
-  // "left" is e.g. -200px, "right" is +200px
-  const xOffset = side === "left" ? -250 : 250;
+  // Use explicit offset if provided, otherwise fallback to side defaults
+  const xOffset = offset !== undefined ? offset : (side === "left" ? -250 : 250);
 
   // Visual opacity fade approach
   const opacity = Math.min(1, Math.max(0, 1 - relativePos / 2500));

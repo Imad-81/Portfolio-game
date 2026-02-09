@@ -18,6 +18,7 @@ const IDLE_SPEED = 0.15;   // subtle ambient motion
 const DRIVE_SPEED = 4;     // active driving speed
 const STEER_SPEED = 3;     // lateral speed (pixels per frame)
 const MAX_LATERAL = 900;   // Road width limit
+const TRACK_LENGTH = 3000; // Loop distance
 
 // Portal X-Coordinates (Matches Portal.tsx offsets)
 // Left: -250, Right: 250
@@ -132,7 +133,21 @@ export default function Hero() {
       // 5. Collision Logic
       if (isDrivingRef.current) {
         PORTALS.forEach(p => {
-          const deltaZ = p.distance - dist; // distance to portal (Z-axis relative)
+          // INFINITE LOOP LOGIC:
+          // We map the portal's static distance to a relative position in the current loop window
+          // If (p.distance - dist) is -500 (behind us), we want to treat it as +2500 (ahead of us) 
+          // ONLY if we treat the world as circular.
+
+          // Calculate re-adjusted distance relative to bike
+          // Modulo logic:
+          // Adjust p.distance so it's always "in front" of dist by some amount, modulo TRACK_LENGTH.
+          // Correct math: 
+          // delta = (p.distance - dist) % TRACK_LENGTH;
+          // If delta < 0, delta += TRACK_LENGTH;
+
+          let deltaZ = (p.distance - dist) % TRACK_LENGTH;
+          if (deltaZ < 0) deltaZ += TRACK_LENGTH;
+
           const deltaX = Math.abs(p.x - bikeX.current); // lateral offset
 
           // Collision Window:
@@ -319,16 +334,37 @@ export default function Hero() {
                 />
 
                 {/* PORTALS (INSIDE GRID CONTAINER) */}
-                {PORTALS.map((p, i) => (
-                  <Portal
-                    key={i}
-                    label={p.label}
-                    href={p.href}
-                    side={p.side as "left" | "right"}
-                    distance={p.distance}
-                    currentDistance={bikeDistance}
-                  />
-                ))}
+                {PORTALS.map((p, i) => {
+                  // Rendering Loop Logic:
+                  // Calculate where this portal should be relative to the bike,
+                  // accounting for the infinite track loop.
+                  let relativeZ = (p.distance - bikeDistance) % TRACK_LENGTH;
+                  if (relativeZ < -500) relativeZ += TRACK_LENGTH; // if slightly behind, push to far front?
+                  // Actually, standard modulo for positive loop:
+                  if (relativeZ < 0) relativeZ += TRACK_LENGTH;
+
+                  // However, if it's JUST passed us (e.g. -100), we still want to see it fade out behind.
+                  // So we only "recycle" it if it's WAY behind (e.g. < -500).
+                  // But the modulo above forces it 0..3000.
+                  // Let's optimize:
+                  // if relativeZ is > 2500 (meaning it's technically "behind" in the wrap),
+                  // we can interpret that as negative distance for smooth exit.
+                  if (relativeZ > TRACK_LENGTH - 500) {
+                    relativeZ -= TRACK_LENGTH;
+                  }
+
+                  return (
+                    <Portal
+                      key={i}
+                      label={p.label}
+                      href={p.href}
+                      side={p.side as "left" | "right"}
+                      distance={bikeDistance + relativeZ} // Pass effective world position
+                      offset={p.x}
+                      currentDistance={bikeDistance}
+                    />
+                  );
+                })}
               </div>
 
             </div>
