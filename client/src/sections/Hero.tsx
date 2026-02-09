@@ -318,26 +318,57 @@ export default function Hero() {
 
       {/* OVERLAY - INTRO / PAUSE */}
       {!isGameActive && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center text-white bg-black/40 backdrop-blur-[2px]">
-          <div className="text-center space-y-6 animate-fade-in-up">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70 drop-shadow-[0_0_25px_rgba(255,255,255,0.4)]">
-              {!hasStarted ? "WELCOME TO THE INTERFACE" : "GAME PAUSED"}
-            </h1>
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md bg-noise scanlines">
+          {/* Main Terminal Box */}
+          <div className="relative p-12 md:p-20 border border-white/10 bg-black/80 shadow-[0_0_100px_rgba(188,19,254,0.15)] max-w-4xl w-full mx-4 overflow-hidden">
 
-            {!hasStarted && (
-              <p className="text-lg md:text-xl text-white/70 tracking-widest font-light uppercase">
-                An interactive portfolio experience
-              </p>
-            )}
+            {/* HUD Corners */}
+            <div className="hud-corner-tl" />
+            <div className="hud-corner-tr" />
+            <div className="hud-corner-bl" />
+            <div className="hud-corner-br" />
 
-            <div className="pt-12 space-y-2 text-sm md:text-base font-mono text-[#00f5ff]">
-              <div className="animate-pulse">
-                {!hasStarted ? "PRESS [ENTER] TO DRIVE" : "PRESS [ENTER] TO RESUME GAME"}
+            {/* Content */}
+            <div className="relative z-10 text-center space-y-8">
+
+              {/* Header Group */}
+              <div className="space-y-2">
+                <h1
+                  className="text-6xl md:text-9xl font-black tracking-tighter text-white glitch-text filter drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]"
+                  data-text={!hasStarted ? "SYSTEM ONLINE" : "SYSTEM PAUSED"}
+                >
+                  {!hasStarted ? "SYSTEM ONLINE" : "SYSTEM PAUSED"}
+                </h1>
+
+                <div className="flex items-center justify-center gap-4 text-[#00f5ff] font-mono tracking-[0.2em] text-xs md:text-sm opacity-80">
+                  <span>::</span>
+                  <span>{!hasStarted ? "INITIALIZING INTERFACE" : "AWAITING INPUT"}</span>
+                  <span>::</span>
+                </div>
               </div>
-              <div className="text-white/40">
-                {!hasStarted ? "SCROLL TO EXPLORE" : "OR SCROLL DOWN TO VIEW PORTFOLIO"}
+
+              {/* Decorative Divider */}
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-[#bc13fe] to-transparent opacity-50" />
+
+              {/* Action Group */}
+              <div className="space-y-4 pt-4">
+                <div className="font-mono text-lg md:text-2xl text-white tracking-widest">
+                  <span className="text-[#bc13fe] animate-pulse mr-2">➜</span>
+                  <span className="animate-cursor-blink border-b-2 border-[#bc13fe] pb-1">
+                    {!hasStarted ? "PRESS [ENTER] TO START" : "PRESS [ENTER] TO RESUME"}
+                  </span>
+                </div>
+
+                <p className="text-white/40 font-mono text-[10px] md:text-xs uppercase tracking-widest">
+                  {!hasStarted ? "// SCROLL TO EXPLORE ARCHIVES //" : "// SCROLL DOWN FOR DATABASE ACCESS //"}
+                </p>
               </div>
+
             </div>
+
+            {/* Background Decoration in Box */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00f5ff] to-transparent opacity-50" />
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00f5ff] to-transparent opacity-50" />
           </div>
         </div>
       )}
