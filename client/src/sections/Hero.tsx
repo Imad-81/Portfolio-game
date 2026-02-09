@@ -46,10 +46,13 @@ export default function Hero() {
 
   // State for UI text updates only
   const [isDriving, setIsDriving] = useState(false);
+  const [isGameActive, setIsGameActive] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [bikeDistance, setBikeDistance] = useState(0);
 
   // Refs for animation logic (avoids re-running effects)
   const isDrivingRef = useRef(false);
+  const isGameActiveRef = useRef(false);
   const driveTween = useRef<gsap.core.Tween | null>(null);
 
   // -1 = Left, 0 = Center, 1 = Right
@@ -209,6 +212,41 @@ export default function Hero() {
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Game Activation
+      if (!isGameActiveRef.current) {
+        if (e.key === "Enter") {
+          setIsGameActive(true);
+          isGameActiveRef.current = true;
+          setHasStarted(true);
+          // Optional: slight zoom in when entering?
+          surge(true);
+          // New: Lock scroll
+          document.body.style.overflow = "hidden";
+        }
+        return;
+      }
+
+      // ESCAPE to exit game mode (optional, but good UX)
+      if (e.key === "Escape") {
+        setIsGameActive(false);
+        isGameActiveRef.current = false;
+        setIsDriving(false);
+        isDrivingRef.current = false;
+
+        // Smooth stop
+        if (driveTween.current) {
+          gsap.to(driveTween.current, {
+            timeScale: IDLE_SPEED,
+            duration: 0.6,
+            ease: "power2.out",
+          });
+        }
+
+        // Unlock scroll
+        document.body.style.overflow = "";
+        return;
+      }
+
       // Toggle Driving Mode
       if (e.key === "w" || e.key === "W") {
         const nextState = !isDrivingRef.current;
@@ -240,6 +278,8 @@ export default function Hero() {
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      if (!isGameActiveRef.current) return;
+
       if (["a", "A"].includes(e.key) && steerState.current === -1) {
         steerState.current = 0;
         updateTilt();
@@ -257,6 +297,8 @@ export default function Hero() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       cancelAnimationFrame(animationFrameId);
+      // Cleanup: always restore scroll
+      document.body.style.overflow = "";
     };
   }, { scope: containerRef, dependencies: [] }); // Empty dependency array ensures effect runs only once
 
@@ -274,118 +316,152 @@ export default function Hero() {
       {/* SPEED LINES */}
       {ENABLE_SPEED_LINES && <SpeedLines isActive={isDriving} />}
 
-      <div ref={rumbleRef} className="relative w-full h-full will-change-transform">
-        <div
-          ref={tiltRef}
-          className="relative w-full h-full will-change-transform z-10 [transform-style:preserve-3d]"
-        >
-          {/* ===== HORIZON ===== */}
-          <div className="absolute top-[40%] w-full">
-            <div
-              ref={mountRef}
-              className="absolute bottom-0 w-full h-[120px] translate-y-[260px] pointer-events-none"
-            >
-              <Mountains />
-            </div>
+      {/* OVERLAY - INTRO / PAUSE */}
+      {!isGameActive && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center text-white bg-black/40 backdrop-blur-[2px]">
+          <div className="text-center space-y-6 animate-fade-in-up">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70 drop-shadow-[0_0_25px_rgba(255,255,255,0.4)]">
+              {!hasStarted ? "WELCOME TO THE INTERFACE" : "GAME PAUSED"}
+            </h1>
 
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[120px] pointer-events-none">
-              <RetroSun />
-            </div>
+            {!hasStarted && (
+              <p className="text-lg md:text-xl text-white/70 tracking-widest font-light uppercase">
+                An interactive portfolio experience
+              </p>
+            )}
 
-            <div className="absolute bottom-0 w-full h-28 bg-gradient-to-t from-[#ff4ecd]/20 via-[#ff4ecd]/10 to-transparent blur-xl" />
-          </div>
-
-          {/* ===== CITY ===== */}
-          <div
-            ref={cityRef}
-            className="absolute top-[50%] w-full h-full z-20 pointer-events-none"
-          >
-            <Cityscape side="left" />
-            <Cityscape side="right" />
-          </div>
-
-          {/* ===== GRID ===== */}
-          <div className="absolute top-[40%] w-full h-[60%] overflow-hidden z-10">
-            <div
-              className="
-                absolute w-[200%] h-[200%] -left-[50%] -top-[50%]
-                [transform-style:preserve-3d]
-                [transform:perspective(240px)_rotateX(75deg)]
-                "
-            >
-              {/* 
-                    Wrapper for internal X-translation (Lateral movement).
-                    The outer div holds the perspective and rotation.
-                    This inner div slides left/right.
-                */}
-              <div ref={gridTransformRef} className="w-full h-full [transform-style:preserve-3d] will-change-transform">
-                <div
-                  ref={gridTextureRef}
-                  className="w-[400vw] h-[400vw]"
-                  style={{
-                    backgroundImage: `
-                        linear-gradient(to right, var(--color-grid-pink) 2px, transparent 2px),
-                        linear-gradient(to bottom, var(--color-grid-pink) 2px, transparent 2px)
-                        `,
-                    backgroundSize: "60px 60px",
-                    maskImage:
-                      "linear-gradient(to top, black 0%, black 55%, transparent 100%)",
-                  }}
-                />
-
-                {/* PORTALS (INSIDE GRID CONTAINER) */}
-                {PORTALS.map((p, i) => {
-                  // Rendering Loop Logic:
-                  // Calculate where this portal should be relative to the bike,
-                  // accounting for the infinite track loop.
-                  let relativeZ = (p.distance - bikeDistance) % TRACK_LENGTH;
-                  if (relativeZ < -500) relativeZ += TRACK_LENGTH; // if slightly behind, push to far front?
-                  // Actually, standard modulo for positive loop:
-                  if (relativeZ < 0) relativeZ += TRACK_LENGTH;
-
-                  // However, if it's JUST passed us (e.g. -100), we still want to see it fade out behind.
-                  // So we only "recycle" it if it's WAY behind (e.g. < -500).
-                  // But the modulo above forces it 0..3000.
-                  // Let's optimize:
-                  // if relativeZ is > 2500 (meaning it's technically "behind" in the wrap),
-                  // we can interpret that as negative distance for smooth exit.
-                  if (relativeZ > TRACK_LENGTH - 500) {
-                    relativeZ -= TRACK_LENGTH;
-                  }
-
-                  return (
-                    <Portal
-                      key={i}
-                      label={p.label}
-                      href={p.href}
-                      side={p.side as "left" | "right"}
-                      distance={bikeDistance + relativeZ} // Pass effective world position
-                      offset={p.x}
-                      currentDistance={bikeDistance}
-                    />
-                  );
-                })}
+            <div className="pt-12 space-y-2 text-sm md:text-base font-mono text-[#00f5ff]">
+              <div className="animate-pulse">
+                {!hasStarted ? "PRESS [ENTER] TO DRIVE" : "PRESS [ENTER] TO RESUME GAME"}
               </div>
-
+              <div className="text-white/40">
+                {!hasStarted ? "SCROLL TO EXPLORE" : "OR SCROLL DOWN TO VIEW PORTFOLIO"}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* ===== BIKE (FPP COCKPIT) ===== */}
-      {/* Note: Bike is OUTSIDE the camera tumble to act as the "viewport frame" 
-          or shake strictly with vibration? 
-          Let's put it on top of the rumbleRef but not the tiltRef.
-          Actually, let's keep it clean on top.
-      */}
-      <div className="absolute inset-0 z-30 pointer-events-none">
-        <Bike />
+      {/* GAME WORLD CONTAINER */}
+      <div
+        className={`relative w-full h-full transition-all duration-1000 ${!isGameActive ? "blur-md scale-105 opacity-80" : "blur-0 scale-100 opacity-100"}`}
+      >
+        <div ref={rumbleRef} className="relative w-full h-full will-change-transform">
+          <div
+            ref={tiltRef}
+            className="relative w-full h-full will-change-transform z-10 [transform-style:preserve-3d]"
+          >
+            {/* ===== HORIZON ===== */}
+            <div className="absolute top-[40%] w-full">
+              <div
+                ref={mountRef}
+                className="absolute bottom-0 w-full h-[120px] translate-y-[260px] pointer-events-none"
+              >
+                <Mountains />
+              </div>
+
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[120px] pointer-events-none">
+                <RetroSun />
+              </div>
+
+              <div className="absolute bottom-0 w-full h-28 bg-gradient-to-t from-[#ff4ecd]/20 via-[#ff4ecd]/10 to-transparent blur-xl" />
+            </div>
+
+            {/* ===== CITY ===== */}
+            <div
+              ref={cityRef}
+              className="absolute top-[50%] w-full h-full z-20 pointer-events-none"
+            >
+              <Cityscape side="left" />
+              <Cityscape side="right" />
+            </div>
+
+            {/* ===== GRID ===== */}
+            <div className="absolute top-[40%] w-full h-[60%] overflow-hidden z-10">
+              <div
+                className="
+                  absolute w-[200%] h-[200%] -left-[50%] -top-[50%]
+                  [transform-style:preserve-3d]
+                  [transform:perspective(240px)_rotateX(75deg)]
+                  "
+              >
+                {/* 
+                      Wrapper for internal X-translation (Lateral movement).
+                      The outer div holds the perspective and rotation.
+                      This inner div slides left/right.
+                  */}
+                <div ref={gridTransformRef} className="w-full h-full [transform-style:preserve-3d] will-change-transform">
+                  <div
+                    ref={gridTextureRef}
+                    className="w-[400vw] h-[400vw]"
+                    style={{
+                      backgroundImage: `
+                          linear-gradient(to right, var(--color-grid-pink) 2px, transparent 2px),
+                          linear-gradient(to bottom, var(--color-grid-pink) 2px, transparent 2px)
+                          `,
+                      backgroundSize: "60px 60px",
+                      maskImage:
+                        "linear-gradient(to top, black 0%, black 55%, transparent 100%)",
+                    }}
+                  />
+
+                  {/* PORTALS (INSIDE GRID CONTAINER) */}
+                  {PORTALS.map((p, i) => {
+                    // Rendering Loop Logic:
+                    // Calculate where this portal should be relative to the bike,
+                    // accounting for the infinite track loop.
+                    let relativeZ = (p.distance - bikeDistance) % TRACK_LENGTH;
+                    if (relativeZ < -500) relativeZ += TRACK_LENGTH; // if slightly behind, push to far front?
+                    // Actually, standard modulo for positive loop:
+                    if (relativeZ < 0) relativeZ += TRACK_LENGTH;
+
+                    // However, if it's JUST passed us (e.g. -100), we still want to see it fade out behind.
+                    // So we only "recycle" it if it's WAY behind (e.g. < -500).
+                    // But the modulo above forces it 0..3000.
+                    // Let's optimize:
+                    // if relativeZ is > 2500 (meaning it's technically "behind" in the wrap),
+                    // we can interpret that as negative distance for smooth exit.
+                    if (relativeZ > TRACK_LENGTH - 500) {
+                      relativeZ -= TRACK_LENGTH;
+                    }
+
+                    return (
+                      <Portal
+                        key={i}
+                        label={p.label}
+                        href={p.href}
+                        side={p.side as "left" | "right"}
+                        distance={bikeDistance + relativeZ} // Pass effective world position
+                        offset={p.x}
+                        currentDistance={bikeDistance}
+                      />
+                    );
+                  })}
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ===== BIKE (FPP COCKPIT) ===== */}
+        {/* Note: Bike is OUTSIDE the camera tumble to act as the "viewport frame" 
+            or shake strictly with vibration? 
+            Let's put it on top of the rumbleRef but not the tiltRef.
+            Actually, let's keep it clean on top.
+        */}
+        <div className="absolute inset-0 z-30 pointer-events-none">
+          <Bike />
+        </div>
       </div>
 
       {/* UI */}
-      <div className="absolute bottom-8 w-full text-center text-white/60 text-xs tracking-widest z-50">
-        {isDriving ? "A / D — STEER   ·   W — STOP" : "W — START DRIVING"}
-      </div>
+      {isGameActive && (
+        <div className="absolute bottom-8 w-full text-center text-white/60 text-xs tracking-widest z-50 animate-fade-in">
+          {isDriving ? "A / D — STEER   ·   W — STOP" : "W — START DRIVING"}
+        </div>
+      )}
     </section>
   );
-}   
+}
+
