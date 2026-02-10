@@ -73,6 +73,24 @@ export default function Hero({ isGameActive, setIsGameActive }: HeroProps) {
   // Lateral Position
   const bikeX = useRef(0);
 
+  /* ===== VISIBILITY CHECK (PERFORMANCE) ===== */
+  const isVisibleRef = useRef(true);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+      },
+      { threshold: 0 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   useGSAP(() => {
     /* ===== GRID WORLD LOOP (ALWAYS RUNNING) ===== */
     driveTween.current = gsap.to(gridTextureRef.current, {
@@ -93,6 +111,12 @@ export default function Hero({ isGameActive, setIsGameActive }: HeroProps) {
     let dist = 0; // Local distance tracker for collision loop
 
     const updatePhysics = () => {
+      // PERFORMANCE: Skip if not visible
+      if (!isVisibleRef.current) {
+        animationFrameId = requestAnimationFrame(updatePhysics);
+        return;
+      }
+
       // 1. Forward Speed
       const speed = isDrivingRef.current ? DRIVE_SPEED : IDLE_SPEED;
       dist += speed;

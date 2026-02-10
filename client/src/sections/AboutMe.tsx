@@ -86,8 +86,8 @@ export default function AboutMe() {
                     opacity: 1, filter: "blur(0px)", scale: 1, duration: 1, ease: "power2.out",
                     scrollTrigger: {
                         trigger: el,
-                        start: "top center+=150",
-                        end: "bottom center-=100",
+                        start: "top 85%",
+                        end: "bottom center",
                         toggleActions: "play reverse play reverse",
                         scrub: 1,
                     }
@@ -160,7 +160,7 @@ export default function AboutMe() {
                     <path
                         id="aboutme-path"
                         ref={pathRef}
-                        d="M 50 -5 C 50 10, 80 15, 80 30 C 80 45, 20 50, 20 65 C 20 80, 50 85, 50 105"
+                        d="M 10 -5 C 10 20, 10 40, 50 60 S 50 90, 50 105"
                         fill="none"
                         stroke="url(#pathGradient)"
                         strokeWidth="0.2"
@@ -237,15 +237,15 @@ export default function AboutMe() {
             </div>
 
             {/* STOP 2: NARRATIVE */}
-            <div className="absolute top-[35%] right-[5%] md:right-[15%] max-w-2xl text-right z-30">
-                <div ref={el => { textRefs.current[1] = el }} className="md:mr-20">
+            <div className="absolute top-[35%] left-1/2 -translate-x-1/2 max-w-2xl text-center z-30">
+                <div ref={el => { textRefs.current[1] = el }} className="flex flex-col items-center">
                     <h2 className="text-2xl md:text-4xl font-light leading-relaxed text-white/90">
                         I design and build systems where<br />
                         <span className="italic text-white/60">interfaces</span>,
                         <span className="italic text-[#bc13fe]/80"> intelligence</span>, and
                         <span className="italic text-[#00f2ff]/80"> motion</span> converge.
                     </h2>
-                    <div className="mt-8 h-px w-32 bg-gradient-to-l from-white/30 to-transparent ml-auto" />
+                    <div className="mt-8 h-px w-32 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                 </div>
             </div>
 
