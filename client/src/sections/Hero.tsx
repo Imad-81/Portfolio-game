@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -29,7 +29,12 @@ const PORTALS = [
   { label: "PROJECTS", href: "/projects", side: "right", distance: 2400, x: 250 },
 ] as const;
 
-export default function Hero() {
+interface HeroProps {
+  isGameActive: boolean;
+  setIsGameActive: (active: boolean) => void;
+}
+
+export default function Hero({ isGameActive, setIsGameActive }: HeroProps) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -46,13 +51,20 @@ export default function Hero() {
 
   // State for UI text updates only
   const [isDriving, setIsDriving] = useState(false);
-  const [isGameActive, setIsGameActive] = useState(false);
+  // Removed local isGameActive state
   const [hasStarted, setHasStarted] = useState(false);
   const [bikeDistance, setBikeDistance] = useState(0);
 
   // Refs for animation logic (avoids re-running effects)
   const isDrivingRef = useRef(false);
   const isGameActiveRef = useRef(false);
+
+  // Sync Ref with Prop
+  useEffect(() => {
+    isGameActiveRef.current = isGameActive;
+    if (isGameActive && !hasStarted) setHasStarted(true);
+  }, [isGameActive, hasStarted]);
+
   const driveTween = useRef<gsap.core.Tween | null>(null);
 
   // -1 = Left, 0 = Center, 1 = Right
@@ -302,6 +314,33 @@ export default function Hero() {
     };
   }, { scope: containerRef, dependencies: [] }); // Empty dependency array ensures effect runs only once
 
+  /* ===== OVERLAY ANIMATION REF ===== */
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    if (isGameActiveRef.current && overlayRef.current) {
+      gsap.to(overlayRef.current, {
+        y: "-100%",
+        duration: 1.5,
+        ease: "power3.inOut",
+        onComplete: () => {
+          // Ensure it stays hidden/doesn't block clicks if we need to interact with scene
+          if (overlayRef.current) overlayRef.current.style.pointerEvents = "none";
+        }
+      });
+    } else if (!isGameActiveRef.current && overlayRef.current) {
+      // Reset if we exit game mode
+      gsap.to(overlayRef.current, {
+        y: "0%",
+        duration: 1,
+        ease: "power3.out",
+        onStart: () => {
+          if (overlayRef.current) overlayRef.current.style.pointerEvents = "auto";
+        }
+      });
+    }
+  }, { dependencies: [isGameActive] });
+
   return (
     <section
       ref={containerRef}
@@ -310,31 +349,58 @@ export default function Hero() {
       {/* VIGNETTE */}
       <div className="pointer-events-none absolute inset-0 z-40 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(0,0,0,0.55)_100%)]" />
 
-      {/* CRT */}
-      {/* <div className="crt-overlay" /> */}
-
       {/* SPEED LINES */}
       {ENABLE_SPEED_LINES && <SpeedLines isActive={isDriving} />}
 
-      {/* OVERLAY - INTRO / PAUSE */}
-      {!isGameActive && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
-          {/* Main Glass Panel */}
-          <div className="glass-panel p-8 md:p-12 rounded-3xl max-w-2xl w-full mx-4 flex flex-col items-center text-center animate-float animate-fade-in-up">
+      {/* OVERLAY - INTRO / PAUSE (GARAGE DOOR) */}
+      <div
+        ref={overlayRef}
+        className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md transition-all will-change-transform"
+      >
+        <div className="w-full h-full max-w-[90%] mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative">
 
+          {/* LEFT SIDE: Identity */}
+          <div className="flex flex-col items-start justify-center pl-8 md:pl-20 animate-fade-in-left">
+            <div className="flex items-center gap-6 mb-8 group">
+              {/* Retro Sun Bullet (Matched to AboutMe Sun Style) */}
+              <div id="hero-sun-target" className="relative w-6 h-6 md:w-8 md:h-8 flex-shrink-0" />
+
+              {/* Name */}
+              <h1 className="text-4xl md:text-6xl font-thin tracking-tighter text-white leading-tight">
+                SHAIK <br />
+                <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">IMAD UDDIN</span>
+              </h1>
+            </div>
+
+            {/* Social Buttons */}
+            <div className="flex items-center gap-6 ml-4">
+              {/* Github */}
+              <a href="https://github.com/Imad-81" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-300">
+                <img src="/githublogo.png" alt="Github" className="w-10 h-10 md:w-12 md:h-12 opacity-80 hover:opacity-100" />
+              </a>
+
+              {/* LinkedIn */}
+              <a href="https://www.linkedin.com/in/shaik-imaduddin-a79887390/" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-300">
+                <img src="/linkedinlogo.png" alt="LinkedIn" className="w-10 h-10 md:w-12 md:h-12 opacity-80 hover:opacity-100" />
+              </a>
+            </div>
+          </div>
+
+          {/* RIGHT SIDE: Game Start */}
+          <div className="flex flex-col items-center md:items-end justify-center pr-0 md:pr-20 animate-fade-in-right text-right">
             {/* Top Calm Label */}
-            <h2 className="text-white/60 text-[10px] md:text-xs font-medium tracking-[0.3em] uppercase mb-8">
+            <h2 className="text-white/60 text-[10px] md:text-xs font-medium tracking-[0.3em] uppercase mb-6">
               {!hasStarted ? "INTERACTIVE PORTFOLIO" : "SYSTEM PAUSED"}
             </h2>
 
             {/* Primary Headline */}
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white mb-12 glow-text-subtle">
-              {!hasStarted ? "PLAY THE EXPERIENCE" : "GAME PAUSED"}
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white mb-8 glow-text-subtle text-right">
+              {!hasStarted ? "PLAY THE\nEXPERIENCE" : "GAME\nPAUSED"}
             </h1>
 
             {/* Choice A: Play (Primary) */}
             <div
-              className="group cursor-pointer mb-8 animate-pulse-soft"
+              className="group cursor-pointer mb-8 animate-pulse-soft flex flex-col items-end"
               onClick={() => {
                 const event = new KeyboardEvent('keydown', { key: 'Enter' });
                 window.dispatchEvent(event);
@@ -349,24 +415,13 @@ export default function Hero() {
             </div>
 
             {/* Choice B: Scroll (Secondary) */}
-            <div className="text-white/30 text-xs md:text-sm font-light tracking-[0.1em] mb-12 flex flex-col items-center gap-2">
+            <div className="text-white/30 text-xs md:text-sm font-light tracking-[0.1em] flex flex-col items-end gap-2">
               <span>{!hasStarted ? "Scroll for the classic view" : "Scroll to explore details"}</span>
-              <span className="animate-float opacity-50" style={{ animationDuration: '3s' }}>↓</span>
+              <span className="animate-float opacity-50 mr-12" style={{ animationDuration: '3s' }}>↓</span>
             </div>
-
-            {/* Footer Personal Branding */}
-            <div className="mt-auto pt-8 border-t border-white/5 w-full">
-              <h3 className="text-white/70 text-sm font-medium tracking-widest uppercase">
-                IMADUDDIN
-              </h3>
-              <p className="text-white/30 text-[10px] tracking-[0.2em] uppercase mt-1">
-                Creative Developer & UI Engineer
-              </p>
-            </div>
-
           </div>
         </div>
-      )}
+      </div>
 
       {/* GAME WORLD CONTAINER */}
       <div
@@ -481,7 +536,7 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* UI */}
+      {/* UI Controls Hint */}
       {isGameActive && (
         <div className="absolute bottom-8 w-full text-center text-white/60 text-xs tracking-widest z-50 animate-fade-in">
           {isDriving ? "A / D — STEER   ·   W — STOP" : "W — START DRIVING"}

@@ -19,6 +19,11 @@ const Portal: React.FC<PortalProps> = ({
   currentDistance,
   offset,
 }) => {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null;
+
   // Relative distance (meters/pixels) from the camera
   // If moving forward increases currentDistance, then:
   // positive result = in front of us
@@ -130,8 +135,8 @@ const Portal: React.FC<PortalProps> = ({
           {Array.from({ length: 6 }).map((_, i) => (
             <rect
               key={i}
-              x={60 + Math.random() * 100}
-              y={300 + Math.random() * 40}
+              x={60 + Math.abs(Math.sin(i * 32.1)) * 100}
+              y={300 + Math.abs(Math.cos(i * 12.3)) * 40}
               width="2"
               height="6"
               fill="#00f5ff"
@@ -140,9 +145,9 @@ const Portal: React.FC<PortalProps> = ({
               <animate
                 attributeName="y"
                 values="320;60"
-                dur={`${3 + Math.random() * 3}s`}
+                dur={`${3 + Math.abs(Math.sin(i * 99.9)) * 3}s`}
                 repeatCount="indefinite"
-                begin={`${Math.random() * 2}s`}
+                begin={`${Math.abs(Math.cos(i * 55.5)) * 2}s`}
               />
               <animate
                 attributeName="opacity"

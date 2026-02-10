@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { useGSAP } from "@gsap/react";
+import PerspectiveText from "../components/PerspectiveText";
 
 // Register Plugins
 gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
@@ -13,46 +14,66 @@ export default function AboutMe() {
     const pathRef = useRef<SVGPathElement>(null);
     const sunRef = useRef<HTMLDivElement>(null);
 
+    // Mouse Position Tracker for 3D effect
+    const mousePos = useRef({ x: 0, y: 0 });
+
     // Refs for animated elements
     const textRefs = useRef<(HTMLDivElement | null)[]>([]);
     const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
-    const signalRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+    useGSAP(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        // Track mouse relative to center of section
+        const handleMouseMove = (e: MouseEvent) => {
+            const rect = container.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            mousePos.current = { x, y };
+        };
+
+        window.addEventListener("mousemove", handleMouseMove);
+        return () => window.removeEventListener("mousemove", handleMouseMove);
+    }, { scope: containerRef });
+
+    // Word Cloud Configuration
+    // We pick a subset to avoid clutter, scattered randomly but thoughtfully
+    const bgWords = [
+        // Top Left / Top Edge
+        { text: "SYSTEMS", x: 2, y: 5, depth: 1.5 },
+        { text: "ENTROPY", x: 25, y: -5, depth: 0.6 },
+
+        // Top Right
+        { text: "INFERENCE", x: 80, y: 15, depth: 1.2 },
+
+        // Mid Left Edge
+        { text: "LATENCY", x: 2, y: 45, depth: 0.8 },
+        { text: "VECTOR", x: -5, y: 65, depth: 1.4 },
+
+        // Mid Right Edge
+        { text: "CONTEXT", x: 85, y: 50, depth: 1.0 },
+        { text: "WEIGHTS", x: 92, y: 35, depth: 0.7 },
+
+        // Bottom Left
+        { text: "TRAJECTORY", x: 5, y: 85, depth: 0.9 },
+
+        // Bottom Right / Center
+        { text: "MODEL", x: 75, y: 90, depth: 1.1 },
+        { text: "DEPTH", x: 50, y: 95, depth: 0.5 },
+    ];
 
     useGSAP(() => {
         const container = containerRef.current;
         const path = pathRef.current;
-        const sun = sunRef.current;
+        // const sun = sunRef.current; // Handled by SunOrchestrator
 
-        if (!container || !path || !sun) return;
+        if (!container || !path) return;
 
         /* ------------------------------------------
-           1. SUN FOLLOWING THE PATH
+           1. SUN FOLLOWING THE PATH (Handled by Global Orchestrator)
            ------------------------------------------ */
-        gsap.to(sun, {
-            motionPath: {
-                path: path,
-                align: path,
-                alignOrigin: [0.5, 0.5],
-                autoRotate: false,
-            },
-            ease: "none",
-            scrollTrigger: {
-                trigger: container,
-                start: "top center",
-                end: "bottom center",
-                scrub: 1,
-            },
-        });
-
-        // Sun Pulse
-        gsap.to(sun, {
-            scale: 1.2,
-            boxShadow: "0 0 40px 10px rgba(255, 200, 0, 0.6), 0 0 80px 20px rgba(255, 100, 0, 0.3)",
-            duration: 2,
-            yoyo: true,
-            repeat: -1,
-            ease: "sine.inOut"
-        });
+        // We just provide the path with an ID now.
 
         /* ------------------------------------------
            2. TEXT REVEALS ON SCROLL
@@ -103,41 +124,29 @@ export default function AboutMe() {
             );
         });
 
-        /* ------------------------------------------
-           4. SIGNAL LAYER (Ghost Words)
-           ------------------------------------------ */
-        signalRefs.current.forEach((el, i) => {
-            if (!el) return;
-            gsap.to(el, {
-                y: -50,
-                opacity: 0.08,
-                scrollTrigger: {
-                    trigger: container,
-                    start: "top bottom",
-                    end: "bottom top",
-                    scrub: 2
-                }
-            });
-        });
-
     }, { scope: containerRef });
 
     return (
         <section
+            id="aboutme-section"
             ref={containerRef}
             className="relative w-full bg-[#050505] overflow-hidden"
-            style={{ height: '180vh' }}
+            style={{ height: '180vh', perspective: '1000px' }} // Added perspective for 3D text
         >
             {/* BACKGROUND ELEMENTS */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(188,19,254,0.03)_0%,transparent_60%)] pointer-events-none" />
 
-            {/* SIGNAL LAYER (Ghost Words) */}
-            <div className="absolute inset-0 pointer-events-none select-none overflow-hidden font-black text-white/5 uppercase tracking-tighter">
-                <div ref={el => { signalRefs.current[0] = el }} className="absolute top-[10%] left-[5%] text-8xl md:text-[10rem] opacity-0">VISION</div>
-                <div ref={el => { signalRefs.current[1] = el }} className="absolute top-[30%] right-[0%] text-8xl md:text-[12rem] opacity-0 text-right">INFERENCE</div>
-                <div ref={el => { signalRefs.current[2] = el }} className="absolute top-[55%] left-[10%] text-6xl md:text-[8rem] opacity-0">LATENCY</div>
-                <div ref={el => { signalRefs.current[3] = el }} className="absolute top-[80%] right-[10%] text-7xl md:text-[9rem] opacity-0">SYSTEMS</div>
-            </div>
+            {/* DYNAMIC 3D PERSPECTIVE TEXT LAYER */}
+            {bgWords.map((word, i) => (
+                <PerspectiveText
+                    key={i}
+                    text={word.text}
+                    initialX={word.x}
+                    initialY={word.y}
+                    depth={word.depth}
+                    mousePos={mousePos}
+                />
+            ))}
 
             {/* SVG PATH (The Track) */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-10">
@@ -149,11 +158,9 @@ export default function AboutMe() {
                     className="overflow-visible"
                 >
                     <path
+                        id="aboutme-path"
                         ref={pathRef}
-                        d="M 50 -5 
-                           C 50 10, 80 15, 80 30 
-                           C 80 45, 20 50, 20 65 
-                           C 20 80, 50 85, 50 105"
+                        d="M 50 -5 C 50 10, 80 15, 80 30 C 80 45, 20 50, 20 65 C 20 80, 50 85, 50 105"
                         fill="none"
                         stroke="url(#pathGradient)"
                         strokeWidth="0.2"
@@ -211,15 +218,8 @@ export default function AboutMe() {
             </div> */}
 
 
-            {/* THE SUN FOLLOWER */}
-            <div
-                ref={sunRef}
-                className="absolute top-0 left-0 w-6 h-6 rounded-full z-20 pointer-events-none"
-                style={{
-                    background: "radial-gradient(circle, #fff 0%, #ffd700 40%, #ff8c00 100%)",
-                    boxShadow: "0 0 25px 5px rgba(255, 200, 0, 0.5)",
-                }}
-            />
+            {/* THE SUN FOLLOWER (Handled by Global Orchestrator) */}
+            {/* <div ref={sunRef} ... /> Removed local sun */}
 
             {/* SCROLLYTELLING CONTENT */}
 

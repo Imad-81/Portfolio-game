@@ -21,14 +21,16 @@ const Cityscape: React.FC<CityscapeProps> = ({ side }) => {
 
             return {
                 id: i,
-                height: Math.random() * 100 + 150, // Base height (scaled later)
-                width: Math.random() * 30 + 40,
+                // Deterministic "random" using sin/cos with index
+                height: (Math.abs(Math.sin(i * 45.32)) * 100) + 150,
+                width: (Math.abs(Math.cos(i * 12.54)) * 30) + 40,
                 color: '#050110', // Dark solid base
-                neonColor: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                neonColor: `hsl(${Math.abs(Math.sin(i * 99.12)) * 360}, 100%, 50%)`,
                 isBillboard,
                 billboardContent: billboardType,
                 delay: i * 0.5 // Stagger spawn time
             };
+
         });
     }, []);
 
@@ -58,12 +60,12 @@ const Cityscape: React.FC<CityscapeProps> = ({ side }) => {
                 // Side 'left': x goes from 0 to -400%
                 // Side 'right': x goes from 0 to 400%
                 const startX = 0;
-                const endX = (side === 'left' ? -1 : 1) * (150 + Math.random() * 200); // Random spread
+                const endX = (side === 'left' ? -1 : 1) * (150 + Math.abs(Math.sin(i * 22.4)) * 200); // Random spread
 
                 // Create a timeline for infinite loop
                 gsap.timeline({
                     repeat: -1,
-                    delay: Math.random() * 5 // Random start delay for natural feel
+                    delay: Math.abs(Math.cos(i * 5.6)) * 5 // Random start delay for natural feel
                 })
                     .fromTo(el,
                         {

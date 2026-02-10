@@ -2,6 +2,11 @@
 import React from "react";
 
 const RetroSun = () => {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null;
+
   return (
     <div
       className="

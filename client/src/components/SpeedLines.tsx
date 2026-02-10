@@ -2,6 +2,11 @@
 import React from "react";
 
 const SpeedLines = ({ isActive }: { isActive: boolean }) => {
+    const [mounted, setMounted] = React.useState(false);
+    React.useEffect(() => setMounted(true), []);
+
+    if (!mounted) return null;
+
     return (
         <div
             className={`pointer-events-none absolute inset-0 z-50 overflow-hidden transition-opacity duration-300 ${isActive ? "opacity-100" : "opacity-0"
@@ -32,19 +37,19 @@ const SpeedLines = ({ isActive }: { isActive: boolean }) => {
                         strokeWidth="0.5"
                         strokeDasharray="10 90" // dashes
                         strokeDashoffset="0"
-                        opacity={0.6 + Math.random() * 0.4}
+                        opacity={0.6 + Math.abs(Math.sin(i * 12.3)) * 0.4}
                     >
                         <animate
                             attributeName="stroke-dashoffset"
                             from="100"
                             to="0"
-                            dur={`${0.2 + Math.random() * 0.3}s`} // fast speed
+                            dur={`${0.2 + Math.abs(Math.cos(i * 45.6)) * 0.3}s`} // fast speed
                             repeatCount="indefinite"
                         />
                         <animate
                             attributeName="stroke-width"
                             values="0.1; 0.8; 0.1"
-                            dur={`${0.5 + Math.random()}s`}
+                            dur={`${0.5 + Math.abs(Math.sin(i * 78.9))}s`}
                             repeatCount="indefinite"
                         />
                     </line>

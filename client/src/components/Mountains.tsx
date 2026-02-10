@@ -2,6 +2,11 @@
 import React from "react";
 
 const Mountains = () => {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null;
+
   return (
     <div className="absolute left-0 w-full h-full pointer-events-none z-10 opacity-45 mix-blend-screen">
       <svg
