@@ -1,7 +1,14 @@
 "use client";
 import React from "react";
 
-const Bike = () => {
+interface BikeProps {
+    speed?: number; // 0–1 normalized
+}
+
+const Bike: React.FC<BikeProps> = ({ speed = 0 }) => {
+    const displayKmh = Math.round(8 + speed * 164); // 8–172 km/h range
+    const needleAngle = -135 + speed * 270; // -135° to 135° sweep
+
     return (
         <div
             className="
@@ -275,16 +282,9 @@ const Bike = () => {
                         stroke="#00f5ff"
                         strokeWidth="2"
                         filter="url(#softGlow)"
-                        transform="rotate(45)"
-                    >
-                        <animateTransform
-                            attributeName="transform"
-                            type="rotate"
-                            values="0;45;0"
-                            dur="3s"
-                            repeatCount="indefinite"
-                        />
-                    </line>
+                        transform={`rotate(${needleAngle})`}
+                        style={{ transition: 'transform 0.15s ease-out' }}
+                    />
 
                     <text y="20" textAnchor="middle" fontSize="8" fill="#00f5ff" opacity="0.7" fontFamily="monospace">
                         SYS
@@ -348,7 +348,7 @@ const Bike = () => {
                     letterSpacing="2"
                     filter="url(#softGlow)"
                 >
-                    104
+                    {displayKmh}
                     <animate attributeName="opacity" values="1;0.9;1" dur="1s" repeatCount="indefinite" />
                 </text>
 

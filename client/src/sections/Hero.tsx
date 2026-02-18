@@ -9,6 +9,7 @@ import Mountains from "../components/Mountains";
 import Bike from "../components/bike/bike";
 import Portal from "../components/Portal";
 import SpeedLines from "../components/SpeedLines";
+import ProjectCard, { PROJECTS } from "../components/ProjectShowcase";
 
 const ENABLE_SPEED_LINES = false;
 
@@ -24,9 +25,7 @@ const TRACK_LENGTH = 3000; // Loop distance
 // Left: -250, Right: 250
 const PORTALS = [
   { label: "GITHUB", href: "https://github.com/Imad-81", side: "left", distance: 600, x: -250 },
-  { label: "LINKEDIN", href: "https://www.linkedin.com/in/shaik-imaduddin-a79887390/", side: "right", distance: 1200, x: 250 },
-  { label: "FUN STUFF", href: "/fun", side: "left", distance: 1800, x: -250 },
-  { label: "PROJECTS", href: "/projects", side: "right", distance: 2400, x: 250 },
+  { label: "LINKEDIN", href: "https://www.linkedin.com/in/shaik-imaduddin-a79887390/", side: "right", distance: 1600, x: 250 },
 ] as const;
 
 interface HeroProps {
@@ -54,10 +53,12 @@ export default function Hero({ isGameActive, setIsGameActive }: HeroProps) {
   // Removed local isGameActive state
   const [hasStarted, setHasStarted] = useState(false);
   const [bikeDistance, setBikeDistance] = useState(0);
+  const [displaySpeed, setDisplaySpeed] = useState(0);
 
   // Refs for animation logic (avoids re-running effects)
   const isDrivingRef = useRef(false);
   const isGameActiveRef = useRef(false);
+  const targetSpeedRef = useRef(0);
 
   // Sync Ref with Prop
   useEffect(() => {
@@ -121,6 +122,11 @@ export default function Hero({ isGameActive, setIsGameActive }: HeroProps) {
       const speed = isDrivingRef.current ? DRIVE_SPEED : IDLE_SPEED;
       dist += speed;
       setBikeDistance(prev => prev + speed);
+
+      // Speed interpolation for display
+      const targetSpeed = isDrivingRef.current ? 1 : 0;
+      targetSpeedRef.current += (targetSpeed - targetSpeedRef.current) * 0.04;
+      setDisplaySpeed(targetSpeedRef.current);
 
       // 2. Lateral Steering (Only when driving)
       if (isDrivingRef.current && steerState.current !== 0) {
@@ -254,22 +260,19 @@ export default function Hero({ isGameActive, setIsGameActive }: HeroProps) {
           setIsGameActive(true);
           isGameActiveRef.current = true;
           setHasStarted(true);
-          // Optional: slight zoom in when entering?
           surge(true);
-          // New: Lock scroll
           document.body.style.overflow = "hidden";
         }
         return;
       }
 
-      // ESCAPE to exit game mode (optional, but good UX)
+      // ESCAPE to exit game mode
       if (e.key === "Escape") {
         setIsGameActive(false);
         isGameActiveRef.current = false;
         setIsDriving(false);
         isDrivingRef.current = false;
 
-        // Smooth stop
         if (driveTween.current) {
           gsap.to(driveTween.current, {
             timeScale: IDLE_SPEED,
@@ -277,37 +280,36 @@ export default function Hero({ isGameActive, setIsGameActive }: HeroProps) {
             ease: "power2.out",
           });
         }
-
-        // Unlock scroll
+        surge(false);
         document.body.style.overflow = "";
         return;
       }
 
-      // Toggle Driving Mode
-      if (e.key === "w" || e.key === "W") {
-        const nextState = !isDrivingRef.current;
-        isDrivingRef.current = nextState;
-        setIsDriving(nextState); // Update UI state
-        surge(nextState);
+      // Hold to Drive (W or ArrowUp)
+      if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") {
+        if (!isDrivingRef.current) {
+          isDrivingRef.current = true;
+          setIsDriving(true);
+          surge(true);
 
-        // Smoothly speed up or slow down
-        if (driveTween.current) {
-          gsap.to(driveTween.current, {
-            timeScale: nextState ? DRIVE_SPEED : IDLE_SPEED,
-            duration: 0.6,
-            ease: "power2.out",
-          });
+          if (driveTween.current) {
+            gsap.to(driveTween.current, {
+              timeScale: DRIVE_SPEED,
+              duration: 0.6,
+              ease: "power2.out",
+            });
+          }
         }
       }
 
-      if (!isDrivingRef.current) return;
-
-      if (e.key === "a" || e.key === "A") {
+      // Steer Left (A or ArrowLeft)
+      if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") {
         steerState.current = -1;
         updateTilt();
       }
 
-      if (e.key === "d" || e.key === "D") {
+      // Steer Right (D or ArrowRight)
+      if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") {
         steerState.current = 1;
         updateTilt();
       }
@@ -316,11 +318,27 @@ export default function Hero({ isGameActive, setIsGameActive }: HeroProps) {
     const handleKeyUp = (e: KeyboardEvent) => {
       if (!isGameActiveRef.current) return;
 
-      if (["a", "A"].includes(e.key) && steerState.current === -1) {
+      // Release to Stop (W or ArrowUp)
+      if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") {
+        isDrivingRef.current = false;
+        setIsDriving(false);
+        surge(false);
+
+        if (driveTween.current) {
+          gsap.to(driveTween.current, {
+            timeScale: IDLE_SPEED,
+            duration: 0.6,
+            ease: "power2.out",
+          });
+        }
+      }
+
+      // Release Steer
+      if (["a", "A", "ArrowLeft"].includes(e.key) && steerState.current === -1) {
         steerState.current = 0;
         updateTilt();
       }
-      if (["d", "D"].includes(e.key) && steerState.current === 1) {
+      if (["d", "D", "ArrowRight"].includes(e.key) && steerState.current === 1) {
         steerState.current = 0;
         updateTilt();
       }
@@ -509,32 +527,41 @@ export default function Hero({ isGameActive, setIsGameActive }: HeroProps) {
 
                   {/* PORTALS (INSIDE GRID CONTAINER) */}
                   {PORTALS.map((p, i) => {
-                    // Rendering Loop Logic:
-                    // Calculate where this portal should be relative to the bike,
-                    // accounting for the infinite track loop.
                     let relativeZ = (p.distance - bikeDistance) % TRACK_LENGTH;
-                    if (relativeZ < -500) relativeZ += TRACK_LENGTH; // if slightly behind, push to far front?
-                    // Actually, standard modulo for positive loop:
+                    if (relativeZ < -500) relativeZ += TRACK_LENGTH;
                     if (relativeZ < 0) relativeZ += TRACK_LENGTH;
-
-                    // However, if it's JUST passed us (e.g. -100), we still want to see it fade out behind.
-                    // So we only "recycle" it if it's WAY behind (e.g. < -500).
-                    // But the modulo above forces it 0..3000.
-                    // Let's optimize:
-                    // if relativeZ is > 2500 (meaning it's technically "behind" in the wrap),
-                    // we can interpret that as negative distance for smooth exit.
                     if (relativeZ > TRACK_LENGTH - 500) {
                       relativeZ -= TRACK_LENGTH;
                     }
 
                     return (
                       <Portal
-                        key={i}
+                        key={`portal-${i}`}
                         label={p.label}
                         href={p.href}
                         side={p.side as "left" | "right"}
-                        distance={bikeDistance + relativeZ} // Pass effective world position
+                        distance={bikeDistance + relativeZ}
                         offset={p.x}
+                        currentDistance={bikeDistance}
+                      />
+                    );
+                  })}
+
+                  {/* PROJECT CARDS (INSIDE GRID CONTAINER — same 3D world as portals) */}
+                  {PROJECTS.map((proj, i) => {
+                    let relativeZ = (proj.distanceStart - bikeDistance) % TRACK_LENGTH;
+                    if (relativeZ < -500) relativeZ += TRACK_LENGTH;
+                    if (relativeZ < 0) relativeZ += TRACK_LENGTH;
+                    if (relativeZ > TRACK_LENGTH - 500) {
+                      relativeZ -= TRACK_LENGTH;
+                    }
+
+                    return (
+                      <ProjectCard
+                        key={`proj-${i}`}
+                        project={proj}
+                        index={i}
+                        distance={bikeDistance + relativeZ}
                         currentDistance={bikeDistance}
                       />
                     );
@@ -553,14 +580,16 @@ export default function Hero({ isGameActive, setIsGameActive }: HeroProps) {
             Actually, let's keep it clean on top.
         */}
         <div className="absolute inset-0 z-30 pointer-events-none">
-          <Bike />
+          <Bike speed={displaySpeed} />
         </div>
+
+
       </div>
 
       {/* UI Controls Hint */}
       {isGameActive && (
         <div className="absolute bottom-8 w-full text-center text-white/60 text-xs tracking-widest z-50 animate-fade-in">
-          {isDriving ? "A / D — STEER   ·   W — STOP" : "W — START DRIVING"}
+          {isDriving ? "A D ← → — STEER   ·   RELEASE TO STOP" : "HOLD W / ↑ — DRIVE"}
         </div>
       )}
     </section>
