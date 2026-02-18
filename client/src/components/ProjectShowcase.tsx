@@ -135,7 +135,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           translateY(-50%)
           translateY(${-relativePos}px) 
           translateX(${xOffset}px) 
-          translateY(-120px)
+          translateY(-180px)
           rotateX(-75deg)
           rotateY(${inwardTilt}deg)
           scale(1.5)

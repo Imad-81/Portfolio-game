@@ -1,0 +1,377 @@
+Project 1 - Calorie Tracker AI 
+CUT.
+Bold. Fast. Lean.
+CUT is a high-performance calorie tracker designed for precision and speed. It leverages AI to simplify food logging and provides a streamlined, high-contrast interface for elite nutrition management.
+
+⚡ Features
+🤖 AI-Powered Capture: Log meals in natural language. No more searching through tedious databases.
+🎯 Macro HUD: Real-time tracking of Protein, Carbs, and Fats with high-visibility indicators.
+⭕ Progress Ring: Instant visual feedback on your daily calorie intake relative to your TDEE.
+📊 Analytics: Track your progress over time with clean, data-driven visualizations.
+⚡ Performance First: Built with Next.js and Framer Motion for a fluid, "anti-gravity" user experience.
+🎨 Aesthetic: "The Obsidian Edge"
+CUT follows a strict design philosophy:
+
+Obsidian (#050505): Deep, focused backgrounds.
+Electric Lime (#ccff00): High-energy accents for critical data.
+Crisp White (#ffffff): Editorial-grade typography.
+🛠 Tech Stack
+Framework: Next.js 15+ (App Router)
+Language: TypeScript
+Animations: Framer Motion
+Styling: Tailwind CSS 4
+State Management: Zustand
+Icons: Lucide React
+Charts: Recharts
+🚀 Getting Started
+Prerequisites
+Bun (Recommended) or Node.js
+Installation
+Clone the repository
+Install dependencies:
+bun install
+Development
+Run the development server:
+
+bun run dev
+Open http://localhost:3000 with your browser to see the result.
+
+🏗 Project Structure
+src/app: Next.js App Router pages and layouts.
+src/components: Reusable UI elements (dashboard, onboarding, ui).
+src/pages: Feature page implementations (Landing, Dashboard, Stats).
+src/store: Global state management via Zustand.
+src/styles: Global CSS and theme configurations.
+Built for those who demand more from their tools.
+
+Project 2 - Machine learning trading algorithm 
+ML_BOT_MARK5
+This repository contains Python scripts and data for a machine learning based trading bot project. The focus is on exploring and implementing different algorithmic trading strategies using historical cryptocurrency data (ETHUSD), with machine learning models for decision-making.
+
+Repository Structure
+*.py files: Various strategy implementations and helper scripts.
+Bounce+EMA*.py, Breakout_Only*.py, etc. contain trading strategy prototypes.
+data_Balancer_LSTM.py, data_Balancer_XG.py scripts for preparing and balancing datasets.
+ML_Test3.py, ML_Test4.py test harnesses for ML model experiments.
+TF_Converter.py for converting model formats (e.g., TensorFlow).
+random.py miscellaneous utilities.
+data/: CSV files with historical price data at various timeframes (1m, 5m, 15m, 1h, 4h) and test results data.
+Balanced_Trades.csv: example output of balanced trades from evaluation.
+test.ipynb: Jupyter notebook for interactive experimentation.
+Getting Started
+Prerequisites
+
+Python 3.10+ (or compatible environment)
+Install dependencies as needed; most scripts rely on common packages such as pandas, numpy, scikit-learn, tensorflow, and xgboost.
+Virtual environment recommended.
+Data
+
+Place historical price CSV files in the data/ directory. Example files are already included for ETHUSD.
+Additional data can be added or generated via other scripts.
+Running Scripts
+
+Use the strategy files to simulate trading or to backtest on historical data.
+data_Balancer_LSTM.py and data_Balancer_XG.py can be run to create training datasets for LSTM or XGBoost models respectively.
+ML_Test3.py/ML_Test4.py are entry points for training and evaluating ML models. Edit parameters or import strategies as needed.
+test.ipynb offers an interactive environment for prototyping results and visualizations.
+Workflow
+
+Experiment with different feature sets and model architectures.
+Balance datasets using the provided balancer scripts.
+Train models and evaluate performance on out-of-sample data.
+Generate trades and review in Balanced_Trades.csv or other result files.
+Contribution
+Feel free to fork or branch the project, implement new strategies, and improve the ML pipeline. Make sure to document your changes and maintain reproducibility of experiments.
+
+License
+This project does not specify a license. Add one if sharing publicly.
+
+Project 3 - noCap 
+
+noCap - Slang Decoder
+Decode the streets, one phrase at a time. — A premium AI-powered slang analyzer built with Next.js, Tailwind CSS, and local LLMs.
+
+✨ Features
+Modern Architecture: Built with Next.js (App Router) & Bun.
+Premium UI: Dark mode, glassmorphism, and smooth animations using Framer Motion.
+Privacy-First AI: Runs offline using LM Studio (local LLMs).
+Fast: Optimized for performance with Bun and TurboPack.
+🛠️ Quick Start
+1. Prerequisites
+Bun: Install Bun
+LM Studio: Install LM Studio
+Load a Model: (e.g., Mistral 7B Instruct)
+Start Server: Ensure the local inference server is running at http://localhost:1234.
+2. Installation
+# Clone the repository (if not already done)
+git clone <repo-url>
+cd projects
+
+# Install dependencies (if needed)
+bun install
+3. Run the App
+# Start the development server
+bun run dev
+Open http://localhost:3000 in your browser.
+
+📁 Project Structure
+projects/
+├── src/
+│   ├── app/
+│   │   ├── api/chat/route.ts  # Backend API for LM Studio
+│   │   ├── page.tsx           # Main Chat Interface
+│   │   ├── layout.tsx         # App Layout (Fonts, Metadata)
+│   │   └── globals.css        # Global Styles & Theme
+│
+├── _legacy/                   # Archived frontend/backend code
+├── public/                    # Static Assets
+├── bun.lock                   # Lockfile
+└── package.json               # Dependencies
+📞 Troubleshooting
+"Failed to connect to the server"
+
+Ensure LM Studio is open and the local server is Started on port 1234.
+
+"Script not found 'dev'"
+
+Project 4 - 
+# 🚶‍♂️ Smart Campus Crowd Management System
+
+A real-time crowd monitoring and predictive analytics system designed for campus facilities (like canteens). This project leverages **Computer Vision (YOLOv8)** to detect occupancy levels and provides a sleek **React Dashboard** for users to check crowd status before visiting.
+
+![Project Status](https://img.shields.io/badge/Status-Active-brightgreen)
+![Tech Stack](https://img.shields.io/badge/Tech-React%20%7C%20FastAPI%20%7C%20YOLOv8-blue)
+
+---
+
+## 🌟 Key Features
+
+- **Real-time Occupancy Detection**: Uses YOLOv8 (You Only Look Once) to count people in video streams with high accuracy.
+- **Dynamic Crowd Classification**: Automatically categorizes crowd levels as **LOW**, **MEDIUM**, or **HIGH**.
+- **Predictive Analytics**: Intelligent "Prediction" engine that considers time of day and special events (e.g., *Wednesday Biryani Day* 🍛).
+- **Modern Dashboard**: A responsive, high-performance UI built with React and Tailwind CSS.
+- **Auto-syncing API**: Seamless integration between the Python Computer Vision backend and the Web frontend.
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph LR
+    A[Video Stream/Camera] --> B[Python YOLOv8 Processor]
+    B --> C[FastAPI Backend]
+    C --> D[React Frontend Dashboard]
+    D --> E[User Device]
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- Python 3.8+
+- Node.js & npm
+- [YOLOv8 Weights](https://github.com/ultralytics/ultralytics) (included as `yolov8n.pt`)
+
+### 2. Backend Setup (Computer Vision & API)
+```bash
+cd backend
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # core windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the live CV processor
+python main.py
+
+# Run the FastAPI server (in a separate terminal)
+uvicorn api:app --reload
+```
+
+### 3. Frontend Setup (Dashboard)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## 📂 Project Structure
+
+- `/backend`: Python source code, YOLO model, and FastAPI logic.
+  - `main.py`: Real-time CV processing loop.
+  - `api.py`: REST API for the frontend.
+  - `requirements.txt`: Python dependencies.
+- `/frontend`: React application.
+  - `/src/components`: UI components (Dashboard, Sidebar, etc.)
+  - `/src/layout`: Main application layout and state management.
+- `/video`: Sample video files for testing the detection system.
+
+---
+
+## 🛠️ Built With
+
+- **Frontend**: [React](https://reactjs.org/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/)
+- **Backend**: [FastAPI](https://fastapi.tiangolo.com/), [Uvicorn](https://www.uvicorn.org/)
+- **AI/ML**: [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics), [OpenCV](https://opencv.org/)
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+*Developed for smarter, more efficient campus living.*
+
+
+Project 5 - 
+
+# AI Humanizer
+
+A robust automation pipeline designed to rewrite AI-generated text into a natural, academic, and professional human-like style. Optimized for use with local LLMs (like Mistral-7B) via LM Studio.
+
+## Features
+
+- **Human-Centric Rewriting:** Transforms robotic prose into text with natural human variation, rhythm, and tone.
+- **Academic Precision:** Maintains a formal, professional tone suitable for academic and research contexts.
+- **Content Integrity:** Strictly preserves all facts, numbers, dates, and technical terms.
+- **Length Preservation:** Advanced logic in `main2.py` ensures the rewritten text maintains a similar length and sentence count to the original, preventing unwanted summarization.
+- **Chunk-Based Processing:** Automatically handles long documents by splitting them into manageable chunks.
+- **Detector Resistance:** Specifically designed to avoid common hallmarks of AI-generated content.
+- **LM Studio Integration:** Connects seamlessly to LM Studio's local API.
+
+## Available Pipelines
+
+### 1. Standard LLM Pipeline (`main.py`)
+The primary automation script using LLM rewrites via LM Studio. Focuses on high-quality humanization and academic tone.
+
+### 2. Length-Preserving LLM Pipeline (`main2.py`)
+An enhanced version of the standard pipeline that adds strict length and sentence count preservation. Highly recommended for maintaining document structure.
+
+### 3. Rule-Based Transformer (`pra_transform.py`)
+A fast, non-LLM alternative that introduces human-like "imperfections" (subtle typos, fillers, comma variations) using rule-based transformations. Useful for quick processing or as a baseline.
+
+## Project Structure
+
+- `main.py` / `main2.py`: The LLM automation pipelines.
+- `pra_transform.py`: Rule-based transformation script.
+- `/inputs`: Place your `.txt` files here for processing.
+- `/outputs`: Humanized files are saved here.
+- `/failed`: Files that require manual review are moved here if validation fails.
+- `humanizer_log.txt`: Detailed logs of the humanization process.
+
+## Setup
+
+1.  **Prerequisites:**
+    - Python 3.9+
+    - [LM Studio](https://lmstudio.ai/) running with a compatible model (e.g., Mistral-7B Instruct).
+
+2.  **Install Dependencies:**
+    ```bash
+    pip install requests regex nltk textstat
+    ```
+
+3.  **Configuration:**
+    Update `LMSTUDIO_API_URL` and `MODEL` in `main.py` or `main2.py` if your local setup differs from the defaults:
+    ```python
+    LMSTUDIO_API_URL = "http://127.0.0.1:11434"
+    MODEL = "mistralai/mistral-7b-instruct-v0.3"
+    ```
+
+## Usage
+
+1.  Place text files in the `inputs/` directory.
+2.  Run your preferred pipeline:
+    ```bash
+    python main2.py
+    ```
+3.  Check the `outputs/` directory for the results.
+
+## Requirements
+
+- `requests`
+- `regex`
+- `nltk` (optional, fallback included)
+- `textstat` (for readability metrics)
+
+---
+
+Project 6 - 
+
+CampusTasks - Student Micro-task Marketplace
+CampusTasks is a modern, sleek, and highly interactive marketplace designed specifically for university students. It facilitates peer-to-peer assistance by allowing students to post micro-tasks, share study materials, and help each other with academic challenges in exchange for rewards.
+
+CampusTasks Dashboard (Placeholder for actual screenshot)
+
+🌟 Key Features
+Dynamic Task Marketplace: A centralized hub for students to browse and filter micro-tasks across various categories like Coding, Study Materials, and Concept Explanations.
+Micro-task Management: Seamless flow for creating, accepting, and completing tasks with real-time status updates.
+Interactive Dashboard: A personalized command center for students to track their active tasks, pending requests, and overall progress.
+Leaderboard & Gamification: Foster a healthy competitive environment through a global leaderboard that recognizes top contributors in the campus community.
+Student Profiles: Dedicated profiles to showcase expertise, bio, and a history of successfully completed tasks.
+Secure Authentication: Robust mock-authentication system with support for student signups and secure logins.
+Responsive & Modern UI: Built with a premium "Glassmorphism" aesthetic, featuring smooth animations and a mobile-first design.
+🚀 Tech Stack
+Frontend: React 19
+Build Tool: Vite
+Routing: React Router DOM 7
+Icons: React Icons
+Styling: Vanilla CSS (Custom Variable-based Design System)
+Persistence: Browser LocalStorage
+🛠️ Getting Started
+Prerequisites
+Node.js (Latest LTS recommended)
+npm or yarn
+Installation
+Clone the repository:
+
+git clone https://github.com/Imad-81/Design_Thinking1.git
+Navigate to the project directory:
+
+cd Design_Thinking1
+Install dependencies:
+
+npm install
+Running the Application
+To start the development server:
+
+npm run dev
+The application will be available at http://localhost:5173.
+
+Building for Production
+To create a production build:
+
+npm run build
+The optimized files will be generated in the dist folder.
+
+📖 Project Structure
+src/App.jsx: Main application logic and routing.
+src/index.css: Core design system and global styles.
+src/services/: Mock backend services for authentication and data management.
+public/: Static assets and icons.
+🤝 Contributing
+We welcome contributions! If you have ideas for new features or improvements, please feel free to:
+
+Fork the Project
+Create your Feature Branch (git checkout -b feature/AmazingFeature)
+Commit your Changes (git commit -m 'Add some AmazingFeature')
+Push to the Branch (git push origin feature/AmazingFeature)
+Open a Pull Request
+📄 License
+Distributed under the MIT License. See LICENSE for more information.
+
+Built with ❤️ for the student community.
+
+
+There are some other smaller projects too, they are not worthy enough to mention. 
+
+
+
