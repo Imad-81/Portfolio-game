@@ -2,24 +2,20 @@
 import React, { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { useGSAP } from "@gsap/react";
 import PerspectiveText from "../components/PerspectiveText";
 
 // Register Plugins
-gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
+gsap.registerPlugin(ScrollTrigger);
 
 export default function AboutMe() {
     const containerRef = useRef<HTMLDivElement>(null);
-    const pathRef = useRef<SVGPathElement>(null);
-    const sunRef = useRef<HTMLDivElement>(null);
 
     // Mouse Position Tracker for 3D effect
     const mousePos = useRef({ x: 0, y: 0 });
 
     // Refs for animated elements
     const textRefs = useRef<(HTMLDivElement | null)[]>([]);
-    const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
 
     useGSAP(() => {
         const container = containerRef.current;
@@ -65,15 +61,8 @@ export default function AboutMe() {
 
     useGSAP(() => {
         const container = containerRef.current;
-        const path = pathRef.current;
-        // const sun = sunRef.current; // Handled by SunOrchestrator
+        if (!container) return;
 
-        if (!container || !path) return;
-
-        /* ------------------------------------------
-           1. SUN FOLLOWING THE PATH (Handled by Global Orchestrator)
-           ------------------------------------------ */
-        // We just provide the path with an ID now.
 
         /* ------------------------------------------
            2. TEXT REVEALS ON SCROLL
@@ -95,34 +84,6 @@ export default function AboutMe() {
             );
         });
 
-        /* ------------------------------------------
-           3. CONSTELLATION NODES (Simulated proximity)
-           ------------------------------------------ */
-        const nodeTriggers = [
-            { start: "10%", end: "20%" }, // Frontend
-            { start: "30%", end: "40%" }, // LLM
-            { start: "55%", end: "65%" }, // Vision
-            { start: "75%", end: "85%" }, // Trading
-        ];
-
-        nodeRefs.current.forEach((el, i) => {
-            if (!el || !nodeTriggers[i]) return;
-
-            // Fades in when sun enters zone, fades out when it leaves
-            gsap.fromTo(el,
-                { opacity: 0, scale: 0 },
-                {
-                    opacity: 1, scale: 1, duration: 0.3,
-                    scrollTrigger: {
-                        trigger: container,
-                        start: `top+=${nodeTriggers[i].start} center`,
-                        end: `top+=${nodeTriggers[i].end} center`,
-                        toggleActions: "play reverse play reverse", // Validates "disappear as sun goes down"
-                        scrub: 0.5
-                    }
-                }
-            );
-        });
 
     }, { scope: containerRef });
 
@@ -148,37 +109,6 @@ export default function AboutMe() {
                 />
             ))}
 
-            {/* SVG PATH (The Track) */}
-            <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-10">
-                <svg
-                    width="100%"
-                    height="100%"
-                    viewBox="0 0 100 100"
-                    preserveAspectRatio="none"
-                    className="overflow-visible"
-                >
-                    <path
-                        id="aboutme-path"
-                        ref={pathRef}
-                        d="M 10 -5 C 10 20, 10 40, 50 60 S 50 90, 50 105"
-                        fill="none"
-                        stroke="url(#pathGradient)"
-                        strokeWidth="0.2"
-                        vectorEffect="non-scaling-stroke"
-                        className="opacity-30"
-                    />
-                    <defs>
-                        <linearGradient id="pathGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor="#bc13fe" stopOpacity="0" />
-                            <stop offset="20%" stopColor="#bc13fe" stopOpacity="0.8" />
-                            <stop offset="80%" stopColor="#00f2ff" stopOpacity="0.8" />
-                            <stop offset="100%" stopColor="#00f2ff" stopOpacity="0" />
-                        </linearGradient>
-                    </defs>
-
-
-                </svg>
-            </div>
 
             {/* STATIC TIMELINE TEXT (HTML for alignment & visibility) */}
             {/* 1. Learning Systems - Near top curve */}
@@ -195,31 +125,6 @@ export default function AboutMe() {
             {/* </div> */}
 
 
-            {/* CONSTELLATION NODES (Floating Capability Data) */}
-            {/* Node 1: Frontend Systems */}
-            {/* <div ref={el => { nodeRefs.current[0] = el }} className="absolute top-[18%] right-[25%] z-20 flex items-center gap-3 pointer-events-none opacity-0">
-                <div className="w-2 h-2 rounded-full border border-[#00f2ff] bg-[#00f2ff]/20 shadow-[0_0_10px_#00f2ff]" />
-                <span className="text-[#00f2ff] text-xs tracking-widest uppercase font-mono">Frontend Systems</span>
-            </div> */}
-            {/* Node 2: LLM Pipelines */}
-            {/* <div ref={el => { nodeRefs.current[1] = el }} className="absolute top-[40%] left-[20%] z-20 flex items-center gap-3 pointer-events-none flex-row-reverse opacity-0">
-                <div className="w-2 h-2 rounded-full border border-[#bc13fe] bg-[#bc13fe]/20 shadow-[0_0_10px_#bc13fe]" />
-                <span className="text-[#bc13fe] text-xs tracking-widest uppercase font-mono">LLM Pipelines</span>
-            </div> */}
-            {/* Node 3: Computer Vision */}
-            {/* <div ref={el => { nodeRefs.current[2] = el }} className="absolute top-[60%] right-[25%] z-20 flex items-center gap-3 pointer-events-none opacity-0">
-                <div className="w-2 h-2 rounded-full border border-white bg-white/20 shadow-[0_0_10px_white]" />
-                <span className="text-white text-xs tracking-widest uppercase font-mono">Computer Vision</span>
-            </div> */}
-            {/* Node 4: Trading Algos */}
-            {/* <div ref={el => { nodeRefs.current[3] = el }} className="absolute top-[82%] left-[30%] z-20 flex items-center gap-3 pointer-events-none flex-row-reverse opacity-0">
-                <div className="w-2 h-2 rounded-full border border-yellow-400 bg-yellow-400/20 shadow-[0_0_10px_yellow]" />
-                <span className="text-yellow-400 text-xs tracking-widest uppercase font-mono">Trading Algos</span>
-            </div> */}
-
-
-            {/* THE SUN FOLLOWER (Handled by Global Orchestrator) */}
-            {/* <div ref={sunRef} ... /> Removed local sun */}
 
             {/* SCROLLYTELLING CONTENT */}
 

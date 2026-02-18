@@ -386,9 +386,6 @@ export default function Hero({ isGameActive, setIsGameActive }: HeroProps) {
           {/* LEFT SIDE: Identity */}
           <div className="flex flex-col items-start justify-center pl-8 md:pl-20 animate-fade-in-left">
             <div className="flex items-center gap-6 mb-8 group">
-              {/* Retro Sun Bullet (Matched to AboutMe Sun Style) */}
-              <div id="hero-sun-target" className="relative w-6 h-6 md:w-8 md:h-8 flex-shrink-0" />
-
               {/* Name */}
               <h1 className="text-4xl md:text-6xl font-thin tracking-tighter text-white leading-tight">
                 SHAIK <br />
