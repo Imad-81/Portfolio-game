@@ -104,8 +104,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     if (relativePos < -200) return null;
     if (relativePos > 4000) return null;
 
-    // X offset — further out than portals so they don't overlap
-    const xOffset = project.side === "left" ? -420 : 420;
+    // X offset — push further to the sides for billboard positioning
+    const xOffset = project.side === "left" ? -620 : 620;
 
     // Opacity: fade in as you approach, full when close
     const opacity = Math.min(1, Math.max(0, 1 - relativePos / 3000));
@@ -118,6 +118,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
         ? "rgba(0,245,255,"
         : "rgba(255,78,205,";
 
+    // Inward tilt: increases as user gets closer (futuristic billboard lean)
+    // At 2000+ distance: no tilt. At 0 distance: max tilt (~18 degrees inward)
+    const tiltProgress = Math.max(0, Math.min(1, 1 - relativePos / 2000));
+    const inwardTilt = isLeft
+        ? tiltProgress * 18   // Left cards tilt clockwise (positive rotateY)
+        : tiltProgress * -18; // Right cards tilt counter-clockwise (negative rotateY)
+
     return (
         <div
             className="absolute top-1/2 left-1/2 will-change-transform"
@@ -128,7 +135,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           translateY(-50%)
           translateY(${-relativePos}px) 
           translateX(${xOffset}px) 
+          translateY(-120px)
           rotateX(-75deg)
+          rotateY(${inwardTilt}deg)
           scale(1.5)
         `,
                 opacity,
@@ -267,18 +276,18 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     </div>
                 </div>
 
-                {/* Ground contact glow — same approach as Portal */}
+                {/* Ground glow — projected below floating billboard */}
                 <div
                     style={{
                         position: "absolute",
-                        bottom: "-8px",
+                        bottom: "-30px",
                         left: "50%",
-                        width: "160px",
-                        height: "30px",
+                        width: "200px",
+                        height: "50px",
                         transform: "translateX(-50%) rotateX(75deg)",
-                        background: `radial-gradient(ellipse at center, ${accentRgba}0.4), transparent 70%)`,
-                        filter: "blur(10px)",
-                        opacity: isClose ? 0.7 : 0.3,
+                        background: `radial-gradient(ellipse at center, ${accentRgba}0.35), transparent 70%)`,
+                        filter: "blur(14px)",
+                        opacity: isClose ? 0.6 : 0.2,
                         transition: "opacity 0.4s ease",
                     }}
                 />
